@@ -1,0 +1,89 @@
+name: Planetary Build Firewall
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - 'release/**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+concurrency:
+  group: planetary-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  l0_l7_validation:
+    name: L0-L7 Thermodynamic Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.12.0
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Python sanity gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python --version
+          python -m pip install --upgrade pip
+
+      - name: L0-L7 Multi-language compile and static checks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== Rust cargo check sweep ==="
+          mapfile -d '' manifests < <(find . -name Cargo.toml -print0)
+          if [ "${#manifests[@]}" -eq 0 ]; then
+            echo "No Rust manifests found."
+          else
+            for manifest in "${manifests[@]}"; do
+              echo "[cargo] checking ${manifest}"
+              cargo check --manifest-path "${manifest}" --all-targets --locked
+            done
+          fi
+
+          echo "=== Zig syntax and compile sweep ==="
+          mapfile -d '' zig_files < <(find . -name '*.zig' -print0)
+          if [ "${#zig_files[@]}" -eq 0 ]; then
+            echo "No Zig files found."
+          else
+            zig fmt --check "${zig_files[@]}"
+            for zf in "${zig_files[@]}"; do
+              echo "[zig] testing ${zf}"
+              zig test "${zf}"
+            done
+          fi
+
+          echo "=== Python syntax gate ==="
+          mapfile -d '' py_files < <(find . -name '*.py' -print0)
+          if [ "${#py_files[@]}" -eq 0 ]; then
+            echo "No Python files found."
+          else
+            python -m py_compile "${py_files[@]}"
+          fi
+
+      - name: Thermodynamic compliance sentinel
+        run: echo "L0-L7 checks passed. PR cleared for human review."
