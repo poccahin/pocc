@@ -1,9 +1,11 @@
+mod eclipse_monitor;
 mod gravity_engine;
 mod solana_ledger;
 
 use std::sync::Arc;
 
 use anyhow::Context;
+use eclipse_monitor::{ActionClass, CrossDomainAnchor};
 use gravity_engine::{AgentNodeContext, GravityTensor};
 use serde::{Deserialize, Serialize};
 use solana_ledger::ThermodynamicLedger;
@@ -47,6 +49,12 @@ async fn main() -> anyhow::Result<()> {
 
     let router = Arc::new(GravityTensor::new(1.5, 1.0, 2.0));
     let validator = Arc::new(MockTensorValidator);
+    let cross_domain_anchor = Arc::new(CrossDomainAnchor::new(vec![
+        "https://anchor-1.lifeplusplus.global".to_string(),
+        "https://anchor-2.lifeplusplus.global".to_string(),
+        "sat://leo-ahin-time-signer".to_string(),
+    ]));
+    cross_domain_anchor.spawn_watchdog().await;
 
     let listener = TcpListener::bind("0.0.0.0:8000")
         .await
@@ -58,10 +66,17 @@ async fn main() -> anyhow::Result<()> {
         let router_clone = Arc::clone(&router);
         let ledger_clone = Arc::clone(&ledger);
         let validator_clone = Arc::clone(&validator);
+        let cross_domain_anchor_clone = Arc::clone(&cross_domain_anchor);
 
         tokio::spawn(async move {
-            if let Err(e) =
-                handle_connection(socket, router_clone, ledger_clone, validator_clone).await
+            if let Err(e) = handle_connection(
+                socket,
+                router_clone,
+                ledger_clone,
+                validator_clone,
+                cross_domain_anchor_clone,
+            )
+            .await
             {
                 eprintln!("⚠️ [Network Error] {e}");
             }
@@ -74,6 +89,7 @@ async fn handle_connection(
     router: Arc<GravityTensor>,
     ledger: Arc<ThermodynamicLedger>,
     validator: Arc<MockTensorValidator>,
+    cross_domain_anchor: Arc<CrossDomainAnchor>,
 ) -> anyhow::Result<()> {
     let mut buf = vec![0u8; 4096];
     let n = socket.read(&mut buf).await?;
@@ -84,6 +100,21 @@ async fn handle_connection(
     let intent: RoutingIntent =
         serde_json::from_slice(&buf[..n]).context("invalid intent payload")?;
     let is_robust = validator.verify_robustness(&intent).await;
+
+    let action_class = determine_action_class(&intent);
+    if let Err(reason) = cross_domain_anchor.validate_intent_execution(action_class) {
+        println!("🚫 Execution Denied: {reason}");
+        let response = RoutingDecision {
+            accepted: false,
+            message: "Node is in an eclipsed geographic subnet. Only survival operations are permitted."
+                .to_string(),
+            selected_node: None,
+        };
+
+        let payload = serde_json::to_vec(&response)?;
+        socket.write_all(&payload).await?;
+        return Ok(());
+    }
 
     let decision = if !is_robust {
         println!(
@@ -138,4 +169,17 @@ async fn handle_connection(
     let payload = serde_json::to_vec(&decision)?;
     socket.write_all(&payload).await?;
     Ok(())
+}
+
+fn determine_action_class(intent: &RoutingIntent) -> ActionClass {
+    let normalized = intent.agent_id.to_ascii_lowercase();
+    if normalized.contains("rescue")
+        || normalized.contains("survival")
+        || normalized.contains("evac")
+        || normalized.contains("medic")
+    {
+        ActionClass::SurvivalKinematic
+    } else {
+        ActionClass::EconomicThermodynamic
+    }
 }
