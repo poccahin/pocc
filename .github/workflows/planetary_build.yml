@@ -1,0 +1,76 @@
+name: 🪐 Life++ Planetary Core CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  ZIG_VERSION: 0.11.0
+  NODE_VERSION: 20.x
+
+jobs:
+  thermodynamic-compliance-check:
+    name: Cross-Domain Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout Planetary Matrix
+      uses: actions/checkout@v4
+
+    # 1. 配置多语种编译器环境
+    - name: 🦀 Install Rust Toolchain (L1-L4)
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
+
+    - name: ⚡ Install Zig Compiler (L0)
+      uses: goto-bus-stop/setup-zig@v2
+      with:
+        version: ${{ env.ZIG_VERSION }}
+
+    - name: 🐍 Set up Python & PyTorch (L2.5/L6)
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        
+    - name: 🌍 Set up Node.js (L7 Koala OS)
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: 7_koala_os_frontend/package-lock.json
+
+    # 2. 物理层 (L0) 编译与极速斩波测试
+    - name: 🛡️ Build L0 Kinetic Trust Root (Zig)
+      run: |
+        cd 1_kinetic_trust_root/hardware_chopping_estop
+        zig build -Doptimize=ReleaseFast
+        zig build test
+
+    # 3. 共识与经济层 (L1-L4) 编译与张量路由测试
+    - name: 🕸️ Build L1-L4 AHIN & Ledger (Rust)
+      run: |
+        cargo build --release --workspace
+        cargo test --workspace --locked
+        cargo clippy -- -D warnings
+
+    # 4. 认知风洞 (L2.5) 依赖安装与鲁棒性测试
+    - name: 🧠 Test PoCC Tensor Wind Tunnel (Python)
+      run: |
+        pip install -r 3_cai_cognitive_cortex/requirements.txt
+        python -m pytest 2.5_pocc_collaboration_mesh/tensor_telepathy_engine/tests/
+
+    # 5. 全息视界 (L7) 构建
+    - name: 🌌 Build Koala OS Omnisphere (TypeScript/WebGL)
+      run: |
+        cd 7_koala_os_frontend
+        npm ci
+        npm run build
+
+    # 6. 终极判决
+    - name: ✅ Planetary Core Verified
+      run: echo "All multidimensional tests passed. The PR is thermodynamically and kinematically safe."
