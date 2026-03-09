@@ -1,0 +1,6 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY ignite_swarm.py /app/ignite_swarm.py
+
+CMD ["python", "ignite_swarm.py"]

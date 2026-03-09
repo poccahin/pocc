@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # L2.5: 张量风洞与防毒网关 (Python / PyTorch)
+  tensor_validator:
+    build:
+      context: ../../2.5_pocc_collaboration_mesh
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    networks:
+      - ahin-net
+    environment:
+      - NOISE_STD=0.05
+
+  # L1: CR+ 核心路由与 WebSocket 广播塔 (Rust)
+  ahin_router:
+    build:
+      context: ../../2_ahin_nervous_system
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000" # P2P 接收端口
+      - "9000:9000" # WebSocket 广播端口
+    depends_on:
+      - tensor_validator
+    networks:
+      - ahin-net
+    environment:
+      - VALIDATOR_URL=http://tensor_validator:50051
+      - RUST_LOG=info
+
+  # L7: Koala OS 全息视界 (Node.js / React Three Fiber)
+  koala_os_frontend:
+    build:
+      context: ../../7_koala_os_frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - ahin_router
+    networks:
+      - ahin-net
+    environment:
+      - REACT_APP_WS_URL=ws://localhost:9000
+
+  # 混沌引擎：蜂群模拟器 (持续发起合法请求与女巫攻击)
+  swarm_simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    depends_on:
+      - ahin_router
+    networks:
+      - ahin-net
+    environment:
+      - TARGET_ROUTER=ahin_router:8000
+    command: ["python", "ignite_swarm.py"]
+
+networks:
+  ahin-net:
+    driver: bridge
