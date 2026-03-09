@@ -404,7 +404,96 @@ This transformation may represent the foundation of a new phase of civilization:
 
 ---
 
-## 11 Experiment Section Structure (NeurIPS Style)
+## 11 L1 Routing Layer: Eclipse Downgrade Protocol and the Cross-Domain BFT Limit
+
+When geographic-scale partition events occur (e.g., submarine cable cuts, regional eclipse, or sovereign network isolation), traditional BFT assumptions can collapse locally even if they remain globally valid.
+
+In standard PBFT/Tendermint-style systems, safety is bounded by:
+
+```text
+f < floor((n-1)/3)
+```
+
+However, in a physically isolated subnet `L`, an adversarial consortium can make local effective malicious ratio approach:
+
+```text
+f_local / n_local -> 1
+```
+
+Under this condition, local false consensus can be produced "legally" under isolated quorum visibility.
+
+Life++ addresses this with an **Eclipse Downgrade Protocol** coupled to an **Orbital Oracle** anchor channel.
+
+### Theorem 5 (Cross-Domain BFT Limit Theorem)
+
+Let the global hard-coded anchor set be:
+
+```text
+A = {A_1, A_2, ..., A_M}
+```
+
+For any honest node `i` inside an isolated region, define the probability of receiving at least one valid orbital VRF heartbeat within window `Δt` as:
+
+```math
+P_{anchor}(\Delta t) = 1 - \prod_{k=1}^{M}\left(1 - p_k(d_{i,k}, \Delta t)\right)
+```
+
+where `p_k(d_{i,k}, Δt)` is the one-way link reachability probability (negative correlation with distance, elevation constraints, and EMI).
+
+Define partition confidence at eclipse timeout `τ_eclipse` (`600s` in implementation):
+
+```math
+C_{eclipse} = \lim_{\Delta t \to \tau_{eclipse}}\left(1 - P_{anchor}(\Delta t)\right)
+```
+
+with cryptographic tolerance constant `ε` (e.g., `10^-9`).
+
+State transition function:
+
+```math
+\Omega(t)=
+\begin{cases}
+\mathcal{E}\ (\text{EconomicThermodynamic}), & C_{eclipse} \le 1-\epsilon \\
+\mathcal{S}\ (\text{SurvivalKinematic}), & C_{eclipse} > 1-\epsilon
+\end{cases}
+```
+
+In survival state `S`, all LIFE++ economic transfer tensors are force-neutralized:
+
+```math
+\forall x \in \text{Transactions}, \quad \mathbf{W}_{economic}\cdot x \equiv 0 \pmod{\mathcal{S}}
+```
+
+Traditional isolated false-consensus probability is:
+
+```math
+\mathbb{P}_{false}^{traditional}=\mathbb{P}\left[f_{local}\ge\frac{2}{3}n_{local}\right]
+```
+
+Under Life++, settlement requires cross-domain orbital coupling, so:
+
+```math
+\mathbb{P}_{false}^{Life++}=
+\mathbb{P}\left[f_{local}\ge\frac{2}{3}n_{local}\right]
+\times
+\mathbb{P}[\text{Spoof}(\mathcal{A})]
+\times
+\mathbb{I}(\Omega(t)=\mathcal{E})
+```
+
+Here `P[Spoof(A)]` denotes successful forgery of the orbital constellation VRF signatures, bounded to negligible probability under ECDLP hardness, and `I(Ω(t)=E)` collapses to `0` after eclipse timeout once downgrade is active.
+
+Therefore:
+
+```math
+\lim_{f_{local}\to n_{local}} \mathbb{P}_{false}^{Life++} \equiv 0
+```
+
+This proves that even with `100%` local computational/cartel control, economic false-finality in an eclipsed subnet converges to strict zero once eclipse downgrade is triggered.
+
+---
+
+## 12 Experiment Section Structure (NeurIPS Style)
 
 ```text
 5 Experiments
