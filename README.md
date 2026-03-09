@@ -84,7 +84,7 @@ make spin-devnet
 
 We are calling on top-tier cryptographers, roboticists, macro-economists, legal scholars, and philosophers. Whether you write Zig for embedded systems, Rust for Solana smart contracts, or Python for hypergraph neural networks, your contributions are required.
 
-Read the **[Yellowpaper (PDF)](./docs/yellowpaper_v_final.pdf)**, the **[Yellowpaper (Markdown Draft)](./docs/lifeplusplus_yellow_paper.md)**, and review our **[CONTRIBUTING.md](./CONTRIBUTING.md)** to begin.
+Read the **[Purplepaper (PDF)](./docs/yellowpaper_v_final.pdf)**, the **[Purplepaper (Markdown Draft)](./docs/lifeplusplus_yellow_paper.md)**, and review our **[CONTRIBUTING.md](./CONTRIBUTING.md)** to begin.
 
 > *"Tools out of bounds is the system's greatest transgression. We build machines to reshape the physical universe's order, not to correct the chaos of the human soul."*
 > — The Life++ Foundation

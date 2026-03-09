@@ -1,4 +1,4 @@
-# Life++ Yellow Paper
+# Life++ Purplepaper
 
 ## Cognitive Consensus and the Agent Internet
 
@@ -404,9 +404,9 @@ This transformation may represent the foundation of a new phase of civilization:
 
 ---
 
-## 10.1 Engineering Mathematical Constraints for the Life++ Yellow Paper
+## 10.1 Engineering Mathematical Constraints for the Life++ Purplepaper
 
-To bridge the conceptual framework of cognitive collapse, CaaS, and PoC with hard thermodynamic and cryptoeconomic constraints, we define the following four mathematical envelopes as *protocol-level admissibility conditions*.
+To bridge the conceptual framework of cognitive collapse, CaaS, and PoC with hard thermodynamic and cryptoeconomic constraints, we define the following five mathematical envelopes as *protocol-level admissibility conditions*.
 
 ### I. Physical Layer (L0/L3): PoTE Thermodynamic Lower Bound
 
@@ -468,6 +468,45 @@ R_{LIFE++} = \lambda \cdot \max(0, \Delta S) \cdot \omega_{domain}
 ```
 
 where `\lambda` is the global liquidity modulation rate and `\omega_{domain}` is the legal-consensus weight of the relevant domain (e.g., ecological restoration or psychosocial solace). This enforces strictly non-negative minting only under instrument-observable entropy reduction.
+
+### V. Collaboration Layer (L2.5): PoCC Distributed Virtual Impedance & Semantic Hard Forking
+
+When a CAI swarm `\mathcal{S} = \{R_1, R_2, \dots, R_N\}` reaches latent intent resonance and executes a shared physical manipulation task, the protocol must not rely on rigid position control. Instead, each robot is required to run a **distributed virtual impedance controller** so network latency and sensor drift are converted into compliant force redistribution rather than destructive kinematic tearing.
+
+Let the global ideal intent trajectory be `\mathbf{X}_{ideal}(t)`. For robot `i`, let `\hat{\mathbf{F}}_i(t)` be delayed local expected force and `\mathbf{F}_i(t)` be measured end-effector force under communication delay `\tau_i`.
+
+Define the global kinematic shear tensor as a weighted Mahalanobis divergence:
+
+```math
+\mathcal{J}_{shear}(t) = \frac{1}{N} \sum_{i=1}^{N} \left( \mathbf{F}_i(t) - \hat{\mathbf{F}}_i(t-\tau_i) \right)^\top \mathbf{W}_{shear} \left( \mathbf{F}_i(t) - \hat{\mathbf{F}}_i(t-\tau_i) \right)
+```
+
+where `\mathbf{W}_{shear}` is the task-specific material stiffness weighting matrix.
+
+Each robot computes local correction force via the mandatory second-order virtual spring-damper dynamics:
+
+```math
+\mathbf{M}_d \Delta \ddot{\mathbf{X}}_i + \mathbf{B}_d \Delta \dot{\mathbf{X}}_i + \mathbf{K}_d \Delta \mathbf{X}_i = \mathbf{F}_i(t) - \hat{\mathbf{F}}_i(t-\tau_i)
+```
+
+and updates servo command with compliant correction:
+
+```math
+\mathbf{X}_{cmd}^{(i)}(t) = \mathbf{X}_{ideal}(t - \tau_i) - \Delta \mathbf{X}_i(t)
+```
+
+Set the protocol-material critical shear boundary `\Phi_{critical}` and define the semantic hard-fork trigger step function:
+
+```math
+\mathcal{H}_{fork}(t) = \lim_{\delta \to 0} \int_{t-\delta}^{t} \mathbb{I} \Big( \mathcal{J}_{shear}(t') > \Phi_{critical} \Big) dt'
+```
+
+If `\mathcal{H}_{fork}(t) \ge 1`, the swarm is considered physically and semantically collapsed, and the protocol performs an irreversible **Semantic Hard Fork**:
+
+1. **Physical fuse-off:** bypass high-level cognition and directly trigger L0 firmware interrupt to cut servo `48V` supply into zero-kinetic-energy safe state.
+2. **Economic slashing:** slash the root-cause node (or jointly staked signer set) by causal accountability policy.
+
+This theorem closes the bit-to-atom safety loop: delayed consensus disagreement is softened into impedance-mediated compliance, while catastrophic shear crossing is deterministically terminated at firmware and economic layers.
 
 ---
 
