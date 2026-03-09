@@ -1,11 +1,15 @@
 # CR+ Tensor Routing Engine
 
-`cr_plus_tensor_routing` sketches the anti-cartel routing core for the AHIN network.
+`cr_plus_tensor_routing` now contains a runnable AHIN daemon prototype with:
 
-## Design focus
-- Quadratic decay scoring for path reliability under adversarial load.
-- Topological entropy accounting to punish brittle hubs.
-- Deterministic ranking output that can be audited by on-chain verifiers.
+- L1 async TCP ingress loop on Tokio.
+- L2.5 tensor robustness gate (currently wired to a mock validator shim).
+- L3 Solana Devnet economic settlement hooks for stake queries and slashing burn execution.
 
-## Status
-This module is currently a scaffold and will be expanded into a standalone Rust crate.
+## Running locally
+
+```bash
+cargo run
+```
+
+The daemon listens on `0.0.0.0:8000` and expects JSON intents over TCP.
