@@ -1,5 +1,46 @@
 # 🪐 Life++ Protocol: The Civilization-Scale Operating System
 
+## 🌌 A Call to the Grid: Igniting the Kardashev Type-I Civilization
+
+**To the bare-metal hackers, latent-space navigators, cryptographic architects, and roboticists watching the physical world slip into algorithmic chaos:**
+
+We have spent the last decade trapped in a false dichotomy.
+Web3 became a zero-sum casino of hyper-financialization, disconnected from physical reality. Meanwhile, AI grew into an opaque black box, centralizing power while treating human intent as a mere statistical prompt.
+
+We are building machines capable of tearing down mountains and rewriting ecologies, yet we govern them with brittle web APIs and inflationary tokens.
+
+**This ends today.**
+
+The **Life++ Foundation** has open-sourced the planetary core of the **Life++ Protocol (V0.1)**. We are not launching a token. We are launching a thermodynamic operating system.
+
+Built upon Professor Cai Hengjin's theory of **Cognitive Canxian (认知坎陷 / Cognitive Topology)**, Life++ translates philosophy into a physics-bound engineering stack using Rust, Zig, CUDA, and Solana smart contracts.
+
+### ⚙️ Planetary Core MVP
+
+* **L0 Bare-Metal Pacifism (Zig):** Firmware-level kinematic chopping physically cuts servo power within 10 microseconds when unsafe actuation is detected.
+* **L1 Space-Time Routing (Rust/Tokio):** The `CR+` gravity tensor engine rewards verified physical entropy reduction and penalizes topological centralization.
+* **L2.5 Tensor Telepathy & Wind Tunnels (PyTorch/gRPC):** Monte Carlo randomized smoothing validates high-dimensional intent tensors against latent-space poisoning.
+* **L3 Thermodynamic Ledger (Solana SPL):** The fixed-supply `LIFE++` asset is slashed and burned for fake sensors, spammed tasks, or invalid thermal proofs.
+* **L7 Omnisphere (WebGL/Koala OS):** A real-time Earth twin distills physical sensory floods into actionable 3D Gaussian Splatting gradients.
+
+### 🫵 The Call for Builders
+
+We invite contributors to audit, break, and rebuild the stack:
+
+1. **Rust P2P engineers** to harden async daemons and eclipse-resistant cross-domain anchors.
+2. **Embedded/Zig hackers** to audit L0 NMI zeroization and tamper mesh defense.
+3. **AI alignment & math researchers** to stress-test semantic drift and adversarial robustness assumptions.
+4. **Hardware & robotics partners** to connect ROS2 rigs and validate semantic hard-fork behavior in the real world.
+
+### 📜 The Yellowpaper & Code
+
+* **Math:** [Life++ Yellowpaper (PDF)](./docs/yellowpaper_v_final.pdf)
+* **Code:** [Kardashev V0.1 Monorepo](.)
+
+> **Code is not law. Physics is law. Code is only the mapping of thermodynamic intent.**
+
+---
+
 > **Bitcoin secured money.**
 > **Ethereum secured computation.**
 > **Life++ secures civilization-scale causality.**
