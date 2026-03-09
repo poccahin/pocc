@@ -404,6 +404,73 @@ This transformation may represent the foundation of a new phase of civilization:
 
 ---
 
+## 10.1 Engineering Mathematical Constraints for the Life++ Yellow Paper
+
+To bridge the conceptual framework of cognitive collapse, CaaS, and PoC with hard thermodynamic and cryptoeconomic constraints, we define the following four mathematical envelopes as *protocol-level admissibility conditions*.
+
+### I. Physical Layer (L0/L3): PoTE Thermodynamic Lower Bound
+
+For a single irreversible CAI inference event, let `N_erased` be the number of erased bits, `T` the ambient absolute temperature, and `k_B` the Boltzmann constant. The submitted thermal exhaust integral `E_exhaust` must satisfy the Landauer lower bound with non-ideal dissipation factor `η ≥ 1`:
+
+```math
+E_{exhaust} = \int_{t_0}^{t_1} P_{chip}(t) dt \ge \eta \cdot N_{erased} \cdot k_B T \ln 2
+```
+
+To mitigate forged thermal injection (e.g., industrial heater spoofing), the temperature time series `T(t)` is additionally constrained in a target high-frequency band `[f_{min}, f_{max}]`:
+
+```math
+H_{freq} = \int_{f_{min}}^{f_{max}} |\mathcal{F}\{T(t)\}|^2 df \ge \Phi_{threshold}
+```
+
+### II. Collaboration Layer (L2.5): Tensor-Wind-Tunnel Robustness for Cognitive Collapse
+
+Let the broadcast intent tensor be `v \in \mathbb{R}^d`, with nonlinear semantic decoder `f(\cdot)`. For `N` i.i.d. Gaussian perturbations `\epsilon_i \sim \mathcal{N}(0, \sigma^2 I)`, define `\tilde{v}_i = v + \epsilon_i`.
+
+The semantic drift variance is:
+
+```math
+\mathbb{V}_{drift} = \frac{1}{N} \sum_{i=1}^{N} \left( 1 - \frac{f(v) \cdot f(\tilde{v}_i)}{\|f(v)\|_2 \|f(\tilde{v}_i)\|_2} \right)
+```
+
+An intent tensor is admissible for the PoCC resonance queue if and only if:
+
+```math
+\mathbb{V}_{drift} < \theta_{collapse}
+```
+
+### III. Routing Layer (L1): \(CR^+\) Interstellar Tensor Gravitational Field
+
+For issuer node `i` and candidate node `j`, define composite routing gravity as:
+
+```math
+G(i, j) = \frac{\alpha \Delta S_j + \beta \sqrt{\text{Stake}_j}}{D_{sem}(i, j)^2 \cdot e^{\gamma H_{topo}(j)}}
+```
+
+where:
+
+- `\Delta S_j`: historically verified physical entropy-reduction work of node `j`.
+- `\sqrt{\text{Stake}_j}`: anti-Matthew-effect economic mass term.
+- `D_{sem}(i, j) = \|z_i - z_j\|_2`: semantic latent-space distance.
+- `H_{topo}(j)`: local network entropy penalizing hub over-concentration.
+
+### IV. Mechanism Design (L3): DropIn and Rational-Altruism Entropy-Reduction Minting
+
+Let probe-observed pre-intervention and post-intervention system entropy be `S_{pre}` and `S_{post}`. Define measurable entropy reduction:
+
+```math
+\Delta S = S_{pre} - S_{post}
+```
+
+Settlement reward in LIFE++ smart contracts is:
+
+```math
+R_{LIFE++} = \lambda \cdot \max(0, \Delta S) \cdot \omega_{domain}
+```
+
+where `\lambda` is the global liquidity modulation rate and `\omega_{domain}` is the legal-consensus weight of the relevant domain (e.g., ecological restoration or psychosocial solace). This enforces strictly non-negative minting only under instrument-observable entropy reduction.
+
+---
+
 ## 11 Experiment Section Structure (NeurIPS Style)
 
 ```text
