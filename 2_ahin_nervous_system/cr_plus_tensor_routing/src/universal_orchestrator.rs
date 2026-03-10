@@ -2,6 +2,8 @@
 //! Coordinates ERC-8004 identity checks, PoCC tensor safety, L0 execution,
 //! and x402/Solana settlement into one async CTx lifecycle.
 
+use crate::solana_rpc_pool::RpcFailoverPool;
+use solana_sdk::{signature::Signature, transaction::Transaction};
 use std::sync::Arc;
 use thiserror::Error;
 use tokio::time::{timeout, Duration};
@@ -32,6 +34,7 @@ pub struct CTxWorkflowEngine {
     tensor_firewall: Arc<dyn PoCCTensorClient>,
     hardware_layer: Arc<dyn L0KineticFirmware>,
     settlement_layer: Arc<dyn AgentBankClient>,
+    rpc_pool: Arc<RpcFailoverPool>,
 }
 
 impl CTxWorkflowEngine {
@@ -40,12 +43,14 @@ impl CTxWorkflowEngine {
         tensor_firewall: Arc<dyn PoCCTensorClient>,
         hardware_layer: Arc<dyn L0KineticFirmware>,
         settlement_layer: Arc<dyn AgentBankClient>,
+        rpc_pool: Arc<RpcFailoverPool>,
     ) -> Self {
         Self {
             eth_identity,
             tensor_firewall,
             hardware_layer,
             settlement_layer,
+            rpc_pool,
         }
     }
 
@@ -109,6 +114,21 @@ impl CTxWorkflowEngine {
 
         Ok(receipt)
     }
+
+    /// Submit Daily Netting merkle-root transaction via RPC failover pool.
+    pub async fn submit_daily_netting(
+        &self,
+        netting_transaction: &Transaction,
+    ) -> Result<Signature, WorkflowError> {
+        self.rpc_pool
+            .execute_with_failover(|client| async move {
+                client
+                    .send_and_confirm_transaction(netting_transaction)
+                    .await
+            })
+            .await
+            .map_err(WorkflowError::SettlementLayer)
+    }
 }
 
 #[tonic::async_trait]
@@ -131,8 +151,11 @@ pub trait L0KineticFirmware: Send + Sync {
 
 #[tonic::async_trait]
 pub trait AgentBankClient: Send + Sync {
-    async fn trigger_soulbound_slash(&self, worker_did: &str, proof: String)
-    -> Result<(), WorkflowError>;
+    async fn trigger_soulbound_slash(
+        &self,
+        worker_did: &str,
+        proof: String,
+    ) -> Result<(), WorkflowError>;
 
     async fn queue_x402_micro_payment(
         &self,
@@ -184,7 +207,10 @@ mod tests {
 
     #[tonic::async_trait]
     impl PoCCTensorClient for MockTensor {
-        async fn check_semantic_drift(&self, _tensor: &[f32]) -> Result<TensorCheck, WorkflowError> {
+        async fn check_semantic_drift(
+            &self,
+            _tensor: &[f32],
+        ) -> Result<TensorCheck, WorkflowError> {
             Ok(TensorCheck {
                 is_safe: true,
                 proof_of_poison: String::new(),
@@ -238,6 +264,7 @@ mod tests {
             Arc::new(MockTensor),
             Arc::new(MockHardware),
             bank.clone(),
+            RpcFailoverPool::new(vec!["https://rpc-1.test"]),
         );
 
         let receipt = engine
