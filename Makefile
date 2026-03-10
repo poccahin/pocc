@@ -1,6 +1,6 @@
 # Life++ Planetary Core - Unified Build System
 
-.PHONY: all boot-l0 compile-l1-l4 train-l2.5 build-l7 ignite-testnet
+.PHONY: all boot-l0 compile-l1-l4 train-l2.5 build-l7 ignite-testnet generate-mtls-certs
 
 all: boot-l0 compile-l1-l4 train-l2.5 build-l7
 
@@ -25,3 +25,14 @@ build-l7:
 ignite-testnet:
 	@echo "🔥 Igniting the Promethean Crucible Testnet..."
 	cd tests/pocc_resonance && docker-compose up --build
+
+
+generate-mtls-certs:
+	@echo "🔐 Generating mTLS certificates for PoCC wind tunnel..."
+	mkdir -p certs && cd certs && \
+	openssl req -x509 -newkey rsa:4096 -days 3650 -nodes -keyout ca.key -out ca.crt -subj "/CN=LifePlus_Root_CA" && \
+	openssl req -newkey rsa:4096 -nodes -keyout server.key -out server.csr -subj "/CN=localhost" && \
+	openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 3650 && \
+	openssl req -newkey rsa:4096 -nodes -keyout client.key -out client.csr -subj "/CN=LifePlus_Rust_Gateway" && \
+	openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 3650 && \
+	rm -f *.csr

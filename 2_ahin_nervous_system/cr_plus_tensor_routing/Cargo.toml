@@ -8,7 +8,7 @@ anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.37", features = ["full"] }
-tonic = { version = "0.11", features = ["transport"] }
+tonic = { version = "0.10", features = ["tls", "tls-roots"] }
 solana-client = "1.16"
 solana-sdk = "1.16"
 spl-token = "4.0"
