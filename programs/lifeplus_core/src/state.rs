@@ -44,7 +44,6 @@ impl AgentPersona {
     }
 }
 
-
 #[account]
 pub struct InteractionEdge {
     pub orchestrator: Pubkey,
@@ -64,6 +63,8 @@ pub struct CompositeTaskState {
     pub subtask_rewards: Vec<SubtaskReward>,
     pub completed_subtasks: Vec<u64>,
     pub settled_subtasks: Vec<u64>,
+    pub last_processed_index: u32,
+    pub is_fully_settled: bool,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
