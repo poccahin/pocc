@@ -4,6 +4,7 @@ mod gravity_engine;
 mod siwa;
 mod solana_ledger;
 mod tee_enclave;
+mod universal_orchestrator;
 
 use std::sync::Arc;
 
