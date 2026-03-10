@@ -12,6 +12,8 @@ pub enum LifePlusError {
     DoubleSpendingAttempt,
     #[msg("Agent identity is already marked as slashed/dead.")]
     AgentAlreadyDead,
+    #[msg("CRITICAL: Caller is not a whitelisted auditor. Unauthorized slashing attempt blocked.")]
+    UnauthorizedSlasher,
     #[msg("Arithmetic overflow while processing protocol math.")]
     ArithmeticOverflow,
     #[msg("Invalid payment ratio in bips.")]
