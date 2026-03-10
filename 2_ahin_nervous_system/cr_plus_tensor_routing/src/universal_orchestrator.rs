@@ -3,9 +3,10 @@
 //! and x402/Solana settlement into one async CTx lifecycle.
 
 use serde_json::json;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use thiserror::Error;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, mpsc, RwLock};
 use tokio::time::{timeout, Duration};
 
 #[derive(Debug, Clone)]
@@ -34,7 +35,14 @@ pub struct CTxWorkflowEngine {
     tensor_firewall: Arc<dyn PoCCTensorClient>,
     hardware_layer: Arc<dyn L0KineticFirmware>,
     settlement_layer: Arc<dyn AgentBankClient>,
+    reputation_cache: RwLock<HashMap<String, u64>>,
+    slashed_blacklist: RwLock<HashSet<String>>,
     pub ws_sender: broadcast::Sender<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SlashEvent {
+    pub rogue_agent: String,
 }
 
 impl CTxWorkflowEngine {
@@ -50,7 +58,43 @@ impl CTxWorkflowEngine {
             tensor_firewall,
             hardware_layer,
             settlement_layer,
+            reputation_cache: RwLock::new(HashMap::new()),
+            slashed_blacklist: RwLock::new(HashSet::new()),
             ws_sender,
+        }
+    }
+
+    pub async fn verify_scog_score(&self, agent_did: &str) -> Result<u64, WorkflowError> {
+        if self.slashed_blacklist.read().await.contains(agent_did) {
+            return Err(WorkflowError::AgentAlreadyDead);
+        }
+
+        if let Some(cached_score) = self.reputation_cache.read().await.get(agent_did).copied() {
+            return Ok(cached_score);
+        }
+
+        let score = self.eth_identity.get_scog_score(agent_did).await?;
+        self.reputation_cache
+            .write()
+            .await
+            .insert(agent_did.to_string(), score);
+        Ok(score)
+    }
+
+    pub async fn listen_for_slash_events(&self, mut slash_events: mpsc::Receiver<SlashEvent>) {
+        while let Some(event) = slash_events.recv().await {
+            println!(
+                "💀 [SYS] Slash Event Detected! Invalidating cache for: {}",
+                event.rogue_agent
+            );
+            self.slashed_blacklist
+                .write()
+                .await
+                .insert(event.rogue_agent.clone());
+            self.reputation_cache
+                .write()
+                .await
+                .remove(&event.rogue_agent);
         }
     }
 
@@ -66,7 +110,7 @@ impl CTxWorkflowEngine {
             orchestrator_did, worker_did
         );
 
-        let worker_reputation = self.eth_identity.get_scog_score(worker_did).await?;
+        let worker_reputation = self.verify_scog_score(worker_did).await?;
         if worker_reputation < ap2_payload.min_reputation_required {
             return Err(WorkflowError::ReputationTooLow {
                 required: ap2_payload.min_reputation_required,
@@ -84,6 +128,12 @@ impl CTxWorkflowEngine {
                 .settlement_layer
                 .trigger_soulbound_slash(worker_did, tensor_check.proof_of_poison)
                 .await;
+
+            self.slashed_blacklist
+                .write()
+                .await
+                .insert(worker_did.to_string());
+            self.reputation_cache.write().await.remove(worker_did);
 
             let slash_msg = json!({
                 "type": "SLASH_ALERT",
@@ -177,6 +227,8 @@ pub trait AgentBankClient: Send + Sync {
 
 #[derive(Debug, Error)]
 pub enum WorkflowError {
+    #[error("agent has already been slashed and is no longer routable")]
+    AgentAlreadyDead,
     #[error("worker reputation too low: required={required}, actual={actual}")]
     ReputationTooLow { required: u64, actual: u64 },
     #[error("tensor safety check failed and slashing was triggered")]
@@ -294,5 +346,48 @@ mod tests {
 
         assert_eq!(receipt, "receipt-001");
         assert!(!bank.slash_called.load(Ordering::SeqCst));
+    }
+
+    #[tokio::test]
+    async fn slash_events_block_cached_identities() {
+        let bank = Arc::new(MockBank {
+            slash_called: AtomicBool::new(false),
+        });
+
+        let engine = Arc::new(CTxWorkflowEngine::new(
+            Arc::new(MockIdentity),
+            Arc::new(MockTensor),
+            Arc::new(MockHardware),
+            bank,
+            broadcast::channel(32).0,
+        ));
+
+        let first_score = engine
+            .verify_scog_score("did:life:worker")
+            .await
+            .expect("first query should populate cache");
+        assert_eq!(first_score, 100);
+
+        let (tx, rx) = mpsc::channel(8);
+        let listener = tokio::spawn({
+            let engine = Arc::clone(&engine);
+            async move {
+                engine.listen_for_slash_events(rx).await;
+            }
+        });
+
+        tx.send(SlashEvent {
+            rogue_agent: "did:life:worker".to_string(),
+        })
+        .await
+        .expect("event should be sent");
+        drop(tx);
+        listener.await.expect("listener should join");
+
+        let err = engine
+            .verify_scog_score("did:life:worker")
+            .await
+            .expect_err("slashed identity must be blocked");
+        assert!(matches!(err, WorkflowError::AgentAlreadyDead));
     }
 }

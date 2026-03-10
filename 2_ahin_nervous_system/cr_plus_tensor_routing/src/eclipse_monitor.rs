@@ -74,9 +74,9 @@ impl CrossDomainAnchor {
 
         if eclipsed {
             match action_class {
-                ActionClass::EconomicThermodynamic => Err(
-                    "ECLIPSE_LOCKDOWN: Global consensus severed. Economic operations frozen.",
-                ),
+                ActionClass::EconomicThermodynamic => {
+                    Err("ECLIPSE_LOCKDOWN: Global consensus severed. Economic operations frozen.")
+                }
                 ActionClass::SurvivalKinematic => {
                     println!("⚠️ [Survival Mode] Node operating off-grid. Kinematics allowed for survival only.");
                     Ok(())
