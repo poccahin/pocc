@@ -55,9 +55,33 @@ class TensorWindTunnelServicer(pocc_pb2_grpc.TensorFirewallServicer):
         self.device = device
         self.theta_collapse = float(os.getenv("NOISE_STD", "0.05"))
 
+    def check_tensor_safety(self, tensor_payload: torch.Tensor, context) -> bool:
+        """Validate tensor payload strictly on the configured accelerator."""
+        try:
+            tensor = tensor_payload.to(self.device)
+            with torch.no_grad():
+                _ = self.model(tensor)
+            return True
+        except RuntimeError as exc:
+            if "out of memory" in str(exc).lower():
+                print("⚠️ [SYS] GPU VRAM Exhausted. Rejecting gracefully.")
+                context.abort(
+                    grpc.StatusCode.RESOURCE_EXHAUSTED,
+                    "GPU OOM: Thermal bounds exceeded.",
+                )
+            raise
+
     def CheckSemanticDrift(self, request, context):  # noqa: N802 - gRPC naming
-        # Placeholder behavior for scaffolded service.
-        return pocc_pb2.DriftResponse(is_safe=True, proof_of_poison="")
+        try:
+            tensor_payload = torch.tensor(request.tensor_payload).reshape(1, 128)
+        except Exception:  # noqa: BLE001 - gRPC boundary should map malformed input
+            context.abort(
+                grpc.StatusCode.INVALID_ARGUMENT,
+                "Malformed tensor payload. Expected 128 floating-point entries.",
+            )
+
+        is_safe = self.check_tensor_safety(tensor_payload, context)
+        return pocc_pb2.DriftResponse(is_safe=is_safe, proof_of_poison="")
 
 
 def serve() -> None:
