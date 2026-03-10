@@ -1,6 +1,7 @@
 mod caas_registry;
 mod eclipse_monitor;
 mod gravity_engine;
+mod grpc_python;
 mod siwa;
 mod solana_ledger;
 mod tee_enclave;
