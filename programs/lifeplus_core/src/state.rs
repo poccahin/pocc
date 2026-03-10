@@ -46,7 +46,13 @@ pub struct AhinTimeline {
 pub struct CompositeTaskState {
     pub orchestrator: Pubkey,
     pub total_bounty: u64,
+    pub subtask_rewards: Vec<SubtaskReward>,
     pub completed_subtasks: Vec<u64>,
     pub settled_subtasks: Vec<u64>,
-    pub settlement_lock: bool,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+pub struct SubtaskReward {
+    pub subtask_id: u64,
+    pub payment_bips: u16,
 }
