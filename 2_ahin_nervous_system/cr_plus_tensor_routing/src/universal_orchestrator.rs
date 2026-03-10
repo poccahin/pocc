@@ -2,8 +2,10 @@
 //! Coordinates ERC-8004 identity checks, PoCC tensor safety, L0 execution,
 //! and x402/Solana settlement into one async CTx lifecycle.
 
+use serde_json::json;
 use std::sync::Arc;
 use thiserror::Error;
+use tokio::sync::broadcast;
 use tokio::time::{timeout, Duration};
 
 #[derive(Debug, Clone)]
@@ -32,6 +34,7 @@ pub struct CTxWorkflowEngine {
     tensor_firewall: Arc<dyn PoCCTensorClient>,
     hardware_layer: Arc<dyn L0KineticFirmware>,
     settlement_layer: Arc<dyn AgentBankClient>,
+    pub ws_sender: broadcast::Sender<String>,
 }
 
 impl CTxWorkflowEngine {
@@ -40,12 +43,14 @@ impl CTxWorkflowEngine {
         tensor_firewall: Arc<dyn PoCCTensorClient>,
         hardware_layer: Arc<dyn L0KineticFirmware>,
         settlement_layer: Arc<dyn AgentBankClient>,
+        ws_sender: broadcast::Sender<String>,
     ) -> Self {
         Self {
             eth_identity,
             tensor_firewall,
             hardware_layer,
             settlement_layer,
+            ws_sender,
         }
     }
 
@@ -79,6 +84,14 @@ impl CTxWorkflowEngine {
                 .settlement_layer
                 .trigger_soulbound_slash(worker_did, tensor_check.proof_of_poison)
                 .await;
+
+            let slash_msg = json!({
+                "type": "SLASH_ALERT",
+                "agent": worker_did,
+                "reason": "Adversarial Tensor Drift"
+            });
+            let _ = self.ws_sender.send(slash_msg.to_string());
+
             return Err(WorkflowError::PoisonedTensorSlashed);
         }
 
@@ -107,7 +120,23 @@ impl CTxWorkflowEngine {
             )
             .await?;
 
+        let routing_msg = json!({
+            "type": "ROUTING",
+            "feeEarned": ap2_payload.budget_usdt * 0.001,
+            "description": format!("AP2 Intent Routed via {}", worker_did)
+        });
+        let _ = self.ws_sender.send(routing_msg.to_string());
+
         Ok(receipt)
+    }
+
+    pub async fn trigger_daily_netting_anchor(&self, merkle_root: &str) {
+        let anchor_msg = json!({
+            "type": "NETTING_ANCHOR",
+            "hash": merkle_root,
+            "description": "Merkle Root Anchored to Solana Mainnet"
+        });
+        let _ = self.ws_sender.send(anchor_msg.to_string());
     }
 }
 
@@ -131,8 +160,11 @@ pub trait L0KineticFirmware: Send + Sync {
 
 #[tonic::async_trait]
 pub trait AgentBankClient: Send + Sync {
-    async fn trigger_soulbound_slash(&self, worker_did: &str, proof: String)
-    -> Result<(), WorkflowError>;
+    async fn trigger_soulbound_slash(
+        &self,
+        worker_did: &str,
+        proof: String,
+    ) -> Result<(), WorkflowError>;
 
     async fn queue_x402_micro_payment(
         &self,
@@ -167,6 +199,7 @@ pub enum WorkflowError {
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicBool, Ordering};
+    use tokio::sync::broadcast;
 
     struct MockIdentity;
     struct MockTensor;
@@ -184,7 +217,10 @@ mod tests {
 
     #[tonic::async_trait]
     impl PoCCTensorClient for MockTensor {
-        async fn check_semantic_drift(&self, _tensor: &[f32]) -> Result<TensorCheck, WorkflowError> {
+        async fn check_semantic_drift(
+            &self,
+            _tensor: &[f32],
+        ) -> Result<TensorCheck, WorkflowError> {
             Ok(TensorCheck {
                 is_safe: true,
                 proof_of_poison: String::new(),
@@ -238,6 +274,7 @@ mod tests {
             Arc::new(MockTensor),
             Arc::new(MockHardware),
             bank.clone(),
+            broadcast::channel(32).0,
         );
 
         let receipt = engine
