@@ -21,14 +21,12 @@ pub mod lifeplus_core {
         intent_hash: [u8; 32],
         zk_cogp_proof: Vec<u8>,
         compute_units_consumed: u64,
-        thermodynamic_boundary: u64,
     ) -> Result<()> {
         pocc_structural_verifier::execute_pocc_verification(
             ctx,
             intent_hash,
             zk_cogp_proof,
             compute_units_consumed,
-            thermodynamic_boundary,
         )
     }
 
