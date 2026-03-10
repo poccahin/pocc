@@ -31,4 +31,10 @@ pub enum LifePlusError {
     UnauthorizedAuthority,
     #[msg("Escrow and worker token mints must match.")]
     MintMismatch,
+    #[msg("Data Availability Blob ID cannot be empty. Must provide Arweave/Celestia pointer.")]
+    MissingDataAvailabilityBlob,
+    #[msg("This netting epoch has already been finalized.")]
+    EpochAlreadyFinalized,
+    #[msg("The challenge window for this epoch has expired.")]
+    ChallengeWindowExpired,
 }
