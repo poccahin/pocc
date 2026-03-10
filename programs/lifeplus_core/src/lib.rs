@@ -37,6 +37,12 @@ pub mod lifeplus_core {
         composite_ctx_settlement::process_x402_micro_settlement(ctx, subtask_id)
     }
 
+    pub fn process_batch_settlement_safe(
+        ctx: Context<SettleWorkerCTx>,
+        batch_size: u32,
+    ) -> Result<()> {
+        composite_ctx_settlement::process_batch_settlement_safe(ctx, batch_size)
+    }
 
     pub fn record_settlement_and_decay(
         ctx: Context<UpdateEigenTrustScore>,
@@ -44,12 +50,7 @@ pub mod lifeplus_core {
         orchestrator: Pubkey,
         settled_amount: u64,
     ) -> Result<()> {
-        cogfi_credit_slasher::record_settlement_and_decay(
-            ctx,
-            worker,
-            orchestrator,
-            settled_amount,
-        )
+        cogfi_credit_slasher::record_settlement_and_decay(ctx, worker, orchestrator, settled_amount)
     }
 
     pub fn trigger_soulbound_slash(

@@ -31,4 +31,10 @@ pub enum LifePlusError {
     UnauthorizedAuthority,
     #[msg("Escrow and worker token mints must match.")]
     MintMismatch,
+    #[msg("Batch settlement already completed.")]
+    AlreadySettled,
+    #[msg("Batch size must be greater than zero.")]
+    InvalidBatchSize,
+    #[msg("Batch size exceeds protocol safety ceiling.")]
+    BatchSizeTooLarge,
 }
