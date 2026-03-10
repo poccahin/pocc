@@ -1,5 +1,69 @@
-# Rust build artifacts
-gateway/ap2_universal_router/target/
+# =====================================================================
+# 🚨 THE RED ZONE: STRICT CRYPTOGRAPHIC & SECRET ISOLATION
+# 绝不允许任何密钥、助记词、环境变量文件进入版本控制！
+# =====================================================================
+.env
+.env.local
+.env.production
+*.pem
+*.key
+*.pk
+*secret*.json
+*wallet*.json
+*id.json
+deploy-key.json
+AhinAdmin_*.json
+anchor-wallet.json
 
-# JavaScript dependencies
+# =====================================================================
+# 🕸️ Solana & Anchor Framework (L3)
+# =====================================================================
+3_thermodynamic_ledger/target/
+3_thermodynamic_ledger/.anchor/
+3_thermodynamic_ledger/test-ledger/
+3_thermodynamic_ledger/keys/
+*.so
+
+# =====================================================================
+# 🦀 Rust & Cargo (L1 & L4)
+# =====================================================================
+1_ahin_nervous_system/target/
+4_ap2_universal_gateway/target/
+Cargo.lock  # 视乎是否需要锁定依赖，通常 library 不锁，binary 锁
+**/*.rs.bk
+
+# =====================================================================
+# 🐍 Python & PyTorch (L2.5)
+# =====================================================================
+2_pocc_collaboration_mesh/__pycache__/
+2_pocc_collaboration_mesh/venv/
+2_pocc_collaboration_mesh/env/
+2_pocc_collaboration_mesh/*.pth      # 本地训练的模型权重 (太大且易变)
+2_pocc_collaboration_mesh/*.pt
+.ipynb_checkpoints/
+
+# =====================================================================
+# ⚡ TypeScript, Node.js & React (L7)
+# =====================================================================
 node_modules/
+dist/
+build/
+.next/
+6_koala_os_omnisphere/.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =====================================================================
+# ⚙️ Zig Firmware (L0)
+# =====================================================================
+0_kinetic_trust_root/zig-cache/
+0_kinetic_trust_root/zig-out/
+
+# =====================================================================
+# 🖥️ OS & Environment
+# =====================================================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
