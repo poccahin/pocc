@@ -36,6 +36,7 @@ We invite contributors to audit, break, and rebuild the stack:
 
 * **Math:** [Life++ Yellowpaper (PDF)](./docs/yellowpaper_v_final.pdf)
 * **Code:** [Kardashev V0.1 Monorepo](.)
+* **Architecture Blueprint:** [Planetary Core Full-Stack Index](./docs/planetary_core_index.md)
 
 > **Code is not law. Physics is law. Code is only the mapping of thermodynamic intent.**
 
