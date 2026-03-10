@@ -33,9 +33,8 @@ pub mod lifeplus_core {
     pub fn process_x402_micro_settlement(
         ctx: Context<SettleWorkerCTx>,
         subtask_id: u64,
-        payment_bips: u16,
     ) -> Result<()> {
-        composite_ctx_settlement::process_x402_micro_settlement(ctx, subtask_id, payment_bips)
+        composite_ctx_settlement::process_x402_micro_settlement(ctx, subtask_id)
     }
 
     pub fn trigger_soulbound_slash(

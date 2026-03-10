@@ -15,6 +15,8 @@ pub enum LifePlusError {
     SubtaskNotVerified,
     #[msg("This CTx settlement has already been claimed.")]
     DoubleSpendingAttempt,
+    #[msg("Subtask ID not found in the agreed state registry.")]
+    SubtaskNotFound,
     #[msg("Agent identity is already marked as slashed/dead.")]
     AgentAlreadyDead,
     #[msg("CRITICAL: Caller is not a whitelisted auditor. Unauthorized slashing attempt blocked.")]
