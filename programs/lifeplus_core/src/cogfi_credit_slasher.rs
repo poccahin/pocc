@@ -21,6 +21,24 @@ pub struct EnforceDarwinianFilter<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+#[instruction(worker: Pubkey, orchestrator: Pubkey)]
+pub struct UpdateEigenTrustScore<'info> {
+    #[account(mut)]
+    pub worker_persona: Account<'info, AgentPersona>,
+    #[account(
+        init_if_needed,
+        payer = fee_payer,
+        space = 8 + 32 + 32 + 8,
+        seeds = [b"edge", orchestrator.as_ref(), worker.as_ref()],
+        bump
+    )]
+    pub interaction_edge: Account<'info, InteractionEdge>,
+    #[account(mut)]
+    pub fee_payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
 pub fn trigger_soulbound_slash(
     ctx: Context<EnforceDarwinianFilter>,
     fraud_evidence_hash: [u8; 32],
@@ -55,6 +73,47 @@ pub fn trigger_soulbound_slash(
         slashed_amount
     );
     msg!("💀 The agent is now permanently blacklisted from the AHIN network.");
+
+    Ok(())
+}
+
+pub fn record_settlement_and_decay(
+    ctx: Context<UpdateEigenTrustScore>,
+    worker: Pubkey,
+    orchestrator: Pubkey,
+    settled_amount: u64,
+) -> Result<()> {
+    let edge = &mut ctx.accounts.interaction_edge;
+    let persona = &mut ctx.accounts.worker_persona;
+
+    edge.orchestrator = orchestrator;
+    edge.worker = worker;
+    edge.interaction_count = edge
+        .interaction_count
+        .checked_add(1)
+        .ok_or(LifePlusError::ArithmeticOverflow)?;
+
+    let decay_shift = edge.interaction_count.saturating_sub(1) as u32;
+    let effective_reputation_value = if decay_shift >= 64 {
+        0
+    } else {
+        settled_amount.checked_shr(decay_shift).unwrap_or(0)
+    };
+
+    persona.total_value_settled = persona
+        .total_value_settled
+        .checked_add(effective_reputation_value)
+        .ok_or(LifePlusError::ArithmeticOverflow)?;
+
+    msg!(
+        "🕸️ [EigenTrust] Edge Interaction Count: {}",
+        edge.interaction_count
+    );
+    msg!(
+        "📉 [Decay] Raw Value: {}, Effective S_cog Gain: {}",
+        settled_amount,
+        effective_reputation_value
+    );
 
     Ok(())
 }

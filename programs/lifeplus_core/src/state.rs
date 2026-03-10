@@ -44,6 +44,14 @@ impl AgentPersona {
     }
 }
 
+
+#[account]
+pub struct InteractionEdge {
+    pub orchestrator: Pubkey,
+    pub worker: Pubkey,
+    pub interaction_count: u64,
+}
+
 #[account]
 pub struct AhinTimeline {
     pub current_global_hash: [u8; 32],
