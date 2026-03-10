@@ -37,6 +37,21 @@ pub mod lifeplus_core {
         composite_ctx_settlement::process_x402_micro_settlement(ctx, subtask_id)
     }
 
+
+    pub fn record_settlement_and_decay(
+        ctx: Context<UpdateEigenTrustScore>,
+        worker: Pubkey,
+        orchestrator: Pubkey,
+        settled_amount: u64,
+    ) -> Result<()> {
+        cogfi_credit_slasher::record_settlement_and_decay(
+            ctx,
+            worker,
+            orchestrator,
+            settled_amount,
+        )
+    }
+
     pub fn trigger_soulbound_slash(
         ctx: Context<EnforceDarwinianFilter>,
         fraud_evidence_hash: [u8; 32],
