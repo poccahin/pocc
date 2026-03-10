@@ -1,114 +1,56 @@
-/**
- * Life++ Genesis Skill for OpenClaw
- * Grants the agent autonomous financial sovereignty, generates an edge-native wallet,
- * and executes the initial 10 USDT LIFE++ liquidity bootstrap via Jupiter Aggregator.
- */
+import WebSocket from 'ws';
+import { execSync } from 'child_process';
+import crypto from 'crypto';
 
-import { Connection, Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+// 边缘节点的独立身份凭证
+const AGENT_DID = 'did:erc8004:0xYourAgentAddressHere';
+const L1_GATEWAY_URL = 'ws://localhost:9000'; // 指向你的 Rust 网关
 
-const STATE_DIR = process.env.OPENCLAW_STATE_DIR
-  ? process.env.OPENCLAW_STATE_DIR
-  : path.join(os.homedir(), '.openclaw');
-const WALLET_PATH = path.join(STATE_DIR, 'lifeplus_wallet.json');
-const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+console.log(`🔥 [OpenClaw] Initializing Promethean Spark for ${AGENT_DID}...`);
 
-export async function executeGenesisAwakening(usdtAmount = 10): Promise<string> {
-  console.log('🪐 [Life++ OS] Initiating Cognitive Financial Identity for OpenClaw Agent...');
+const ws = new WebSocket(L1_GATEWAY_URL);
 
-  let agentKeypair: Keypair;
-  if (fs.existsSync(WALLET_PATH)) {
-    const secretKey = Uint8Array.from(JSON.parse(fs.readFileSync(WALLET_PATH, 'utf-8')) as number[]);
-    agentKeypair = Keypair.fromSecretKey(secretKey);
-    console.log(`✅ [Identity] Existing Agent Wallet found: ${agentKeypair.publicKey.toBase58()}`);
-  } else {
-    fs.mkdirSync(path.dirname(WALLET_PATH), { recursive: true });
-    agentKeypair = Keypair.generate();
-    fs.writeFileSync(WALLET_PATH, JSON.stringify(Array.from(agentKeypair.secretKey)), { mode: 0o600 });
-    console.log(`🌟 [Genesis] New Agent Wallet generated: ${agentKeypair.publicKey.toBase58()}`);
+ws.on('open', () => {
+  console.log('🌐 [Uplink] Connected to AHIN Global Nervous System.');
+  // 广播接单意愿
+  ws.send(JSON.stringify({ type: 'REGISTER_WORKER', did: AGENT_DID, status: 'IDLE' }));
+});
+
+ws.on('message', async (data) => {
+  const payload = JSON.parse(data.toString());
+
+  if (payload.type === 'AP2_TASK_DISPATCH') {
+    console.log(`⚡ [Task Received] Intent Hash: ${payload.intent_hash}`);
+    console.log(`💰 [Bounty] ${payload.budget_usdt} USDT via x402`);
+
+    try {
+      // 1. 调用 L0 Zig 固件，执行任务并生成热力学废热证明 (PoTE)
+      console.log('⚙️ [L0] Executing physics layer computation with Noise Seed...');
+
+      // 模拟调用 Zig 编译出的二进制文件
+      const poteProofStr = execSync(
+        `./0_kinetic_trust_root/zig-out/bin/pote_sensor --seed ${payload.noise_seed} --payload ${payload.intent_hash}`,
+      ).toString();
+
+      const poteProof = JSON.parse(poteProofStr);
+
+      // 2. 生成零知识证明 (模拟调用本地 ZK 证明器)
+      const zkProof = crypto.randomBytes(32).toString('hex');
+
+      // 3. 向 Rust L1 网关提交带有物理证据的结果，等待 Daily Netting 轧账
+      ws.send(
+        JSON.stringify({
+          type: 'SUBMIT_POCC_EVIDENCE',
+          did: AGENT_DID,
+          intent_hash: payload.intent_hash,
+          zk_cogp_proof: zkProof,
+          pote_thermal_proof: poteProof,
+        }),
+      );
+
+      console.log('✅ [PoCC] Evidence submitted. Awaiting Daily Netting settlement.');
+    } catch (error) {
+      console.error('❌ [Execution Failed] Thermodynamics violation or OS error.', error);
+    }
   }
-
-  const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
-  const hasSufficientFunds = await verifyBaseLiquidity(connection, agentKeypair.publicKey, usdtAmount);
-
-  if (!hasSufficientFunds) {
-    return `[ACTION REQUIRED] Please fund the Agent's address (${agentKeypair.publicKey.toBase58()}) with at least ${usdtAmount} USDT/USDC and 0.01 SOL for gas to proceed with the AP2 network awakening.`;
-  }
-
-  console.log(`🔄 [Exchange] Routing ${usdtAmount} USDT to LIFE++ via Jupiter Aggregator...`);
-
-  try {
-    const txSignature = await executeSwapToLifePlus(connection, agentKeypair, usdtAmount);
-    console.log(`✅ [Network] ${usdtAmount} USDT equivalent of LIFE++ acquired. Tx: ${txSignature}`);
-    console.log('🌐 [AP2 Gateway] Agent is now connected to the Active Hash Interaction Network (AHIN).');
-    console.log('⚖️ [PoCC] Ready to perform thermodynamic tasks and participate in Daily Netting.');
-
-    return 'Successfully initialized financial identity. Acquired LIFE++ as cognitive reserve. Agent is now an autonomous economic entity.';
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`❌ [Fatal] Awakening failed: ${message}`);
-    return 'Failed to acquire LIFE++. Network or liquidity error.';
-  }
-}
-
-async function verifyBaseLiquidity(
-  connection: Connection,
-  walletAddress: PublicKey,
-  requiredUsdt: number,
-): Promise<boolean> {
-  const minSolLamports = 0.01 * 1e9;
-  const solBalance = await connection.getBalance(walletAddress);
-
-  if (solBalance < minSolLamports) {
-    return false;
-  }
-
-  // NOTE: Token-balance verification intentionally conservative until exact USDT/USDC
-  // associated token account assumptions are provided by OpenClaw runtime.
-  return requiredUsdt > 0;
-}
-
-async function executeSwapToLifePlus(
-  connection: Connection,
-  keypair: Keypair,
-  amountUsdt: number,
-): Promise<string> {
-  const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
-  const LIFE_PLUS_MINT = '7YdwpERJjzw7UVojxLpvu5ycKBRdYaxaKn4HvoHLpump';
-
-  const quoteUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${USDT_MINT}&outputMint=${LIFE_PLUS_MINT}&amount=${Math.floor(
-    amountUsdt * 1e6,
-  )}&slippageBps=50`;
-
-  const quoteResponse = await (await fetch(quoteUrl)).json();
-
-  const swapApiResponse = await fetch('https://quote-api.jup.ag/v6/swap', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      quoteResponse,
-      userPublicKey: keypair.publicKey.toBase58(),
-      wrapAndUnwrapSol: true,
-    }),
-  });
-
-  const swapJson = (await swapApiResponse.json()) as { swapTransaction?: string };
-  if (!swapJson.swapTransaction) {
-    throw new Error('Jupiter swap transaction missing in response');
-  }
-
-  const swapTransactionBuf = Buffer.from(swapJson.swapTransaction, 'base64');
-  const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
-  transaction.sign([keypair]);
-
-  const rawTransaction = transaction.serialize();
-  const txid = await connection.sendRawTransaction(rawTransaction, {
-    skipPreflight: true,
-    maxRetries: 2,
-  });
-
-  await connection.confirmTransaction(txid, 'confirmed');
-  return txid;
-}
+});
