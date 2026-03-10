@@ -35,25 +35,51 @@ export default function CogFi_MacroRadar() {
   const [slashAlert, setSlashAlert] = useState<string | null>(null);
 
   useEffect(() => {
-    const dataInterval = setInterval(() => {
-      setGdp((prev) => prev + Math.random() * 0.001);
-      setStakeRate((prev) => Math.min(60, Math.max(50, prev + (Math.random() * 0.2 - 0.1))));
-      setTps(Math.floor(10000 + Math.random() * 8000));
-    }, 1000);
+    const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:9000';
+    const socket = new WebSocket(wsUrl);
 
-    const slashInterval = setInterval(() => {
-      if (Math.random() > 0.8) {
-        const fakeAddress = `0x${Math.random().toString(16).substring(2, 10).toUpperCase()}...`;
-        setSlashAlert(
-          `[EXECUTION] Persona Soulbound Slash triggered for Agent ${fakeAddress}. Cognitive score zeroed. Stake Burned.`,
-        );
-        setTimeout(() => setSlashAlert(null), 4000);
+    socket.onopen = () => {
+      console.log('✅ [Koala OS] Connected to AHIN Global Gateway.');
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        switch (data.type) {
+          case 'MACRO_UPDATE':
+            if (typeof data.gdp === 'number') setGdp(data.gdp);
+            if (typeof data.tps === 'number') setTps(data.tps);
+            if (typeof data.stakeRate === 'number') setStakeRate(data.stakeRate);
+            break;
+          case 'ROUTING':
+            if (typeof data.feeEarned === 'number') {
+              setGdp((prev) => prev + data.feeEarned / 1_000_000);
+            }
+            setTps((prev) => prev + 1);
+            break;
+          case 'SLASH_ALERT':
+            setSlashAlert(`[EXECUTION] Persona Slash triggered for Agent ${data.agent}. Reason: ${data.reason}`);
+            setTimeout(() => setSlashAlert(null), 5000);
+            break;
+          default:
+            break;
+        }
+      } catch (err) {
+        console.error('Failed to parse AHIN telemetry:', err);
       }
-    }, 6000);
+    };
+
+    socket.onerror = (error) => {
+      console.error('❌ [Koala OS] AHIN Gateway connection error:', error);
+    };
+
+    socket.onclose = () => {
+      console.log('⚠️ [Koala OS] AHIN Gateway connection closed.');
+    };
 
     return () => {
-      clearInterval(dataInterval);
-      clearInterval(slashInterval);
+      socket.close();
     };
   }, []);
 
