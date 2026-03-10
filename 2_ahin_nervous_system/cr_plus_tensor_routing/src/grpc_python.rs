@@ -24,9 +24,8 @@ impl SecureGrpcPythonClient {
         let cert_dir = cert_dir.as_ref();
         let ca_cert_pem = fs::read(cert_dir.join("ca.crt"))
             .map_err(|e| WorkflowError::TensorLayer(format!("failed to read ca.crt: {e}")))?;
-        let client_cert_pem = fs::read(cert_dir.join("client.crt")).map_err(|e| {
-            WorkflowError::TensorLayer(format!("failed to read client.crt: {e}"))
-        })?;
+        let client_cert_pem = fs::read(cert_dir.join("client.crt"))
+            .map_err(|e| WorkflowError::TensorLayer(format!("failed to read client.crt: {e}")))?;
         let client_key_pem = fs::read(cert_dir.join("client.key"))
             .map_err(|e| WorkflowError::TensorLayer(format!("failed to read client.key: {e}")))?;
 
