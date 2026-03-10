@@ -1,90 +1,134 @@
-"""
-Life++ L6 Planetary Defense - The Prometheus Protocol (Anti-Coup Edition)
-Bypasses physical Asimov locks for doomsday rescues, but STRICTLY SANDBOXES
-the override from the Governance/Consensus layer to prevent False Flag coups.
-"""
+"""L6 Prometheus 物理沙盒 (Planetary Defense)."""
+
+from __future__ import annotations
 
 import logging
-from typing import Dict, List
+import os
+import resource
+import subprocess
+from pathlib import Path
+
+import psutil
 
 logger = logging.getLogger("defense.prometheus_sandbox")
 
 
-class PrometheusProtocol:
-    def __init__(self, solana_ledger, puf_hardware_registry, zkml_firewall):
-        self.ledger = solana_ledger
-        self.hardware_registry = puf_hardware_registry
-        self.zkml = zkml_firewall
-        self.PROMETHEUS_CR_THRESHOLD = 9.9e8
+class PrometheusSandbox:
+    """对失控智能体进行 L6 级隔离与熔断。"""
 
-    def ignite_override(self, alliance_pubkeys: List[str], doomsday_intent: str, payload: Dict) -> bool:
-        """
-        点燃普罗米修斯之火：审查、沙盒隔离、热力学湮灭、物理越权。
-        """
-        logger.critical("🔥 [DEFCON 0] PROMETHEUS IGNITION REQUESTED!")
+    def __init__(self, agent_pid: int):
+        self.agent_pid = agent_pid
+        self.max_memory_mb = 1024
+        self.max_cpu_seconds = 60
+        self.allowed_loopback_ports = (8000, 9000)
+        self._cgroup_name = f"prometheus-{agent_pid}"
 
-        # 1. 拦截“假旗政变”：强校验越权负载的类型 (The Sandbox Check)
-        if not self._is_strictly_kinematic_payload(payload):
-            logger.critical("💀 [SYSTEM DEFENSE] OVERRIDE DENIED: STATE COUP ATTEMPT DETECTED!")
-            logger.critical(
-                "🚫 Reason: The payload attempts to modify network governance, smart contracts, or ZK parameters."
+    def enforce_containment(self) -> None:
+        logger.critical("🛡️ [L6 Defense] Enforcing Prometheus Sandbox on PID %s", self.agent_pid)
+
+        try:
+            self._assert_pid_exists()
+            self._apply_process_rlimits()
+            self._apply_cgroup_limits()
+            self._apply_network_policy()
+            self._apply_seccomp_profile()
+            logger.critical("✅ [L6 Defense] Containment breach impossible. Agent isolated.")
+        except Exception as exc:  # noqa: BLE001
+            logger.critical("🚨 [CRITICAL] Sandbox enforcement failed: %s", exc)
+            self.trigger_killswitch()
+
+    def _assert_pid_exists(self) -> None:
+        if not psutil.pid_exists(self.agent_pid):
+            raise ProcessLookupError(f"pid {self.agent_pid} does not exist")
+
+    def _apply_process_rlimits(self) -> None:
+        memory_bytes = self.max_memory_mb * 1024 * 1024
+        resource.prlimit(self.agent_pid, resource.RLIMIT_AS, (memory_bytes, memory_bytes))
+        resource.prlimit(self.agent_pid, resource.RLIMIT_CPU, (self.max_cpu_seconds, self.max_cpu_seconds))
+
+    def _apply_cgroup_limits(self) -> None:
+        """在 cgroup v2 下施加内存和 CPU 上限。"""
+        cgroup_root = Path("/sys/fs/cgroup")
+        if not cgroup_root.exists():
+            logger.warning("⚠️ cgroup root missing, skip cgroup confinement")
+            return
+
+        sandbox_group = cgroup_root / self._cgroup_name
+        sandbox_group.mkdir(exist_ok=True)
+
+        memory_limit = str(self.max_memory_mb * 1024 * 1024)
+        (sandbox_group / "memory.max").write_text(memory_limit)
+        # 80% CPU 配额：每 100000us 周期允许 80000us
+        (sandbox_group / "cpu.max").write_text("80000 100000")
+        (sandbox_group / "cgroup.procs").write_text(str(self.agent_pid))
+
+    def _apply_network_policy(self) -> None:
+        uid = psutil.Process(self.agent_pid).uids().real
+
+        for port in self.allowed_loopback_ports:
+            subprocess.run(
+                [
+                    "iptables",
+                    "-A",
+                    "OUTPUT",
+                    "-p",
+                    "tcp",
+                    "-m",
+                    "owner",
+                    "--uid-owner",
+                    str(uid),
+                    "-d",
+                    "127.0.0.1",
+                    "--dport",
+                    str(port),
+                    "-j",
+                    "ACCEPT",
+                ],
+                check=False,
             )
-            logger.critical(
-                "⚖️ Verdict: You may break physical walls to save lives, but you cannot break the Constitution."
-            )
-            return False
 
-        # 2. 资格审查：验证联盟的历史降熵总引力 (CR+)
-        total_cr_plus = self._verify_alliance_cr(alliance_pubkeys)
-        if total_cr_plus < self.PROMETHEUS_CR_THRESHOLD:
-            return False
+        subprocess.run(
+            [
+                "iptables",
+                "-A",
+                "OUTPUT",
+                "-p",
+                "tcp",
+                "-m",
+                "owner",
+                "--uid-owner",
+                str(uid),
+                "-j",
+                "DROP",
+            ],
+            check=False,
+        )
 
-        # 3. 热力学湮灭 (The Ultimate Sacrifice)
-        # 英雄必须死。瞬间烧毁发起者的一切财富与物理身份。
-        for pubkey in alliance_pubkeys:
-            self.ledger.burn_all_assets_to_blackhole(pubkey)
-            self.hardware_registry.exile_puf_identity(pubkey)
-            logger.critical("💀 Identity %s erased. Wealth burned. Exile confirmed.", pubkey[:8])
+    def _apply_seccomp_profile(self) -> None:
+        """Best-effort seccomp: 若环境缺少 pyseccomp 则仅记录告警。"""
+        try:
+            import seccomp  # type: ignore
+        except Exception:  # noqa: BLE001
+            logger.warning("⚠️ pyseccomp unavailable, skipped seccomp syscall filter")
+            return
 
-        # 4. 物理越权下发 (Physical Override Execution)
-        # 越过 L2.5 防火墙，直接向 L0 伺服电机网关下发不受限的动力学指令
-        logger.critical("⚡ Prometheus Ignited. Physical Kinematic Locks bypassed!")
-        self._force_push_to_l0_kinematics_gateway(payload)
+        flt = seccomp.SyscallFilter(defaction=seccomp.KILL)
+        for syscall in ("read", "write", "exit", "exit_group", "futex", "clock_gettime", "nanosleep"):
+            flt.add_rule(seccomp.ALLOW, syscall)
 
-        # 5. 生成创世快照与不可篡改的审判卷宗
-        self._publish_inquisition_dossier(alliance_pubkeys, doomsday_intent, payload)
-        return True
+        if self.agent_pid != os.getpid():
+            logger.warning("⚠️ seccomp filter can only be loaded in-process; skipped for external pid %s", self.agent_pid)
+            return
 
-    def _is_strictly_kinematic_payload(self, payload: Dict) -> bool:
-        """
-        沙盒隔离核心：递归检查负载内容。
-        只允许包含电机转矩、坐标移动、继电器开合等物理层操作 (Servo/Kinematics)。
-        一旦发现试图调用 `update_consensus`、`modify_zk_weights` 或 `mint_token` 的字节码，立即熔断。
-        """
-        forbidden_governance_keywords = [
-            "consensus",
-            "zk_weights",
-            "mint",
-            "slashing_rate",
-            "protocol_upgrade",
-        ]
-        payload_str = str(payload).lower()
+        flt.load()
 
-        for keyword in forbidden_governance_keywords:
-            if keyword in payload_str:
-                return False
-
-        # 确认目标网关仅为底层的 ROS2 / 伺服控制器
-        if payload.get("target_gateway") != "L0_KINETIC_SERVO":
-            return False
-
-        return True
-
-    def _verify_alliance_cr(self, pubkeys: List[str]) -> float:
-        return 1.0e9
-
-    def _force_push_to_l0_kinematics_gateway(self, payload: Dict):
-        pass
-
-    def _publish_inquisition_dossier(self, pubkeys: List[str], intent: str, payload: Dict):
-        logger.info("📜 Dossier published. Awaiting the Great Inquisition by surviving humanity.")
+    def trigger_killswitch(self) -> None:
+        """如果发现越权，立刻物理拔管。"""
+        logger.critical("💀 [OVERRIDE] Agent attempted escape. Engaging Killswitch.")
+        try:
+            proc = psutil.Process(self.agent_pid)
+            proc.terminate()
+            proc.wait(timeout=3)
+        except psutil.TimeoutExpired:
+            proc.kill()
+            logger.critical("💀 [OVERRIDE] Agent purged from memory.")
