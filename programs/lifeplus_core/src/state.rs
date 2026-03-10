@@ -11,6 +11,13 @@ pub struct AgentPersona {
     pub last_active_timestamp: i64,
 }
 
+#[account]
+pub struct AuditorWhitelist {
+    pub is_active: bool,
+    pub authority: Pubkey,
+    pub total_slashes_executed: u64,
+}
+
 impl AgentPersona {
     pub fn calculate_scog_score(&self, now_timestamp: i64) -> u64 {
         if self.is_slashed {
