@@ -1,3 +1,4 @@
+mod openclaw_ffi_bridge;
 use std::f64::consts::E;
 use tokio::time::{sleep, Duration};
 
