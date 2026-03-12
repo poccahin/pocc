@@ -1,4 +1,15 @@
 const std = @import("std");
+const HmacSha256 = std.crypto.auth.hmac.HmacSha256;
+
+/// Mock device secret key — simulates a key derived from the Secure Enclave / TPM.
+/// In production: provision this via ARM TrustZone, Apple SEP, or read from
+/// a protected environment variable (DEVICE_SECRET_KEY).
+const DEVICE_SECRET_KEY: [32]u8 = [_]u8{
+    0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
+    0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
+    0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
+    0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
+};
 
 /// 动力学采样点：包含微秒级时间戳、关节电流与空间加速度
 const KinematicSample = struct {
@@ -8,12 +19,23 @@ const KinematicSample = struct {
     accel_z_mg: i32, // Z 轴加速度 (毫 G)
 };
 
+/// 可签名的核心有效载荷字段（不含签名自身）
+const PoKWCore = struct {
+    intent_hash: [32]u8,
+    noise_seed: u64,
+    samples: []KinematicSample,
+    energy_joules_estimate: u32,
+};
+
 /// 核心数据结构：动力学工作证明 (PoKW)
+/// device_signature 是用设备密钥对 PoKWCore JSON 做 HMAC-SHA256 的结果，
+/// 可防止来自第三方的遥测数据伪造攻击。
 const PoKWPayload = struct {
     intent_hash: [32]u8,
     noise_seed: u64,
     samples: []KinematicSample,
     energy_joules_estimate: u32,
+    device_signature: [HmacSha256.mac_length]u8,
 };
 
 fn readServoCurrent(random: std.rand.Random, joint_id: u8) i32 {
@@ -74,6 +96,23 @@ fn estimateEnergyJoules(samples: []const KinematicSample) u32 {
     return total;
 }
 
+/// 对 PoKWCore JSON 载荷计算 HMAC-SHA256，返回设备签名。
+/// 这可防止第三方通过伪造 JSON 输出来绕过物理 PoKW 共识。
+fn computeDeviceSignature(
+    allocator: std.mem.Allocator,
+    core: PoKWCore,
+) ![HmacSha256.mac_length]u8 {
+    // 将核心载荷序列化为 JSON（不含签名字段）
+    var buf = std.ArrayList(u8).init(allocator);
+    defer buf.deinit();
+    try std.json.stringify(core, .{}, buf.writer());
+
+    // 用设备密钥对序列化后的 JSON 计算 HMAC-SHA256
+    var mac: [HmacSha256.mac_length]u8 = undefined;
+    HmacSha256.create(&mac, buf.items, &DEVICE_SECRET_KEY);
+    return mac;
+}
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
@@ -97,11 +136,21 @@ pub fn main() !void {
 
     const energy = estimateEnergyJoules(samples);
 
+    // 先构建核心载荷，再对其签名
+    const core = PoKWCore{
+        .intent_hash = intent_hash,
+        .noise_seed = noise_seed,
+        .samples = samples,
+        .energy_joules_estimate = energy,
+    };
+    const signature = try computeDeviceSignature(allocator, core);
+
     const payload = PoKWPayload{
         .intent_hash = intent_hash,
         .noise_seed = noise_seed,
         .samples = samples,
         .energy_joules_estimate = energy,
+        .device_signature = signature,
     };
 
     // 实际工程里建议用 CBOR/FlatBuffers; 这里用 JSON 便于 L1 直接解析。
