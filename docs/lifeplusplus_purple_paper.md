@@ -520,6 +520,109 @@ This theorem closes the bit-to-atom safety loop: delayed consensus disagreement 
     5.4 Phase Transition Detection
 ```
 
+---
+
+## 11.1 The Agent Internet Whitepaper Core: Carbon-Silicon Symbiotic 4D Engine
+
+To express Life++ as protocol-grade public infrastructure (rather than an application product), we collapse the operational worldview into a **Carbon-Silicon Symbiotic 4D Engine**. This framing aligns system architecture, cryptoeconomics, and protocol governance under one invariant: **agent cognition and physical work must be routable, verifiable, and economically settled at planetary scale**.
+
+### 11.1.1 Dimension I — Hardware & Edge Mesh
+
+Life++ rejects single-cloud centrality by treating heterogeneous devices (edge servers, robotics controllers, and high-density AI workstations) as first-class nodes in a planetary execution fabric.
+
+- `openclaw-runtime` provides low-level runtime surfaces for interrupt-safe control and deterministic edge execution.
+- Physical robots and compute nodes contribute measurable work under hardware-rooted trust assumptions.
+- The resulting mesh is both **kinetic-aware** (physical dynamics visible to protocol logic) and **tensor-capable** (native support for high-dimensional AI workloads).
+
+### 11.1.2 Dimension II — AHIN Nervous System (Active Hash & Semantic Routing)
+
+Life++ upgrades the network model from request/response endpoints to **intent-oriented active hash propagation**.
+
+- `ahin-router` routes by semantic fitness, not only address locality.
+- Discovery uses geo-spatially constrained P2P behavior to minimize real-world actuation latency.
+- Broadcast, relay, and task matching are evaluated in latent semantic space, enabling intent-driven routing across heterogeneous agents.
+
+### 11.1.3 Dimension III — POCC & State Channels (Consensus in Motion)
+
+Agent collaboration is secured through **Proof of Cognitive Collaboration (POCC)** and high-frequency off-chain interaction.
+
+- `pocc-protocol` evaluates whether collaborating agents are semantically aligned enough for trustworthy execution.
+- Micro-payments and state channels absorb high-throughput machine-to-machine interactions without forcing every event onto a base chain.
+- This design supports trust-minimized coordination among agents that do not share direct trust relationships.
+
+### 11.1.4 Dimension IV — Truth Settlement & Macroeconomy
+
+All verifiable outcomes (cognitive or physical) eventually settle into auditable economic truth.
+
+- Aggregated states are compressed and anchored through ZK-capable settlement paths.
+- Settlement targets may include high-throughput public chains (e.g., Solana) and permissioned institutional rails (e.g., Quorum-like environments).
+- `lifeplusplus-wallet` and `agent-reputation` finalize clearing, identity continuity, and long-horizon credit assignment.
+
+---
+
+## 11.2 AHIN/POCC Foundational Mathematical Primitives (NeurIPS-Oriented)
+
+The protocol defines consensus not as a single voting event, but as a physically and semantically constrained optimization process.
+
+### 11.2.1 Theorem A — Semantic Friction
+
+Let issuer intent vector be `I` and candidate capability tensor embedding be `C`. Define semantic friction:
+
+```math
+\mathcal{F}(I, C) = 1 - \frac{I \cdot C}{\|I\| \|C\|}
+```
+
+Consensus-collapse admissibility condition:
+
+```math
+\mathcal{F}(I, C) < \epsilon
+```
+
+Interpretation: only low-friction cognitive matches are permitted to enter collaborative execution.
+
+### 11.2.2 Theorem B — Least-Action Routing in AHIN
+
+Routing energy of a path from `Node_A` to `Node_B` combines semantic friction and geo-latency gradients:
+
+```math
+E_{path} = \int_{Node_A}^{Node_B} \left( \alpha \mathcal{F}(I, C(x)) + \beta \nabla t_{geo}(x) \right) dx \rightarrow \min
+```
+
+Interpretation: AHIN searches for minimum-action trajectories that jointly optimize semantic fitness and physical-world latency.
+
+### 11.2.3 Theorem C — Thermodynamic Identity Slashing
+
+For embodied agents, reported thermodynamic work must match measured kinetic-energy accounting:
+
+```math
+\text{If } \Delta Q_{reported} \neq \int_{t_0}^{t_1} \tau \cdot \omega\, dt \implies \text{Slash}(DID)
+```
+
+Interpretation: identity validity is constrained by physical law; falsified work claims trigger immediate slashing semantics.
+
+---
+
+## 11.3 LIFE++ Economic Flywheel (Deflationary Throughput Engine)
+
+The protocol economy couples mandatory collateralization, high-velocity machine commerce, and irreversible penalties.
+
+### 11.3.1 Potential Energy Injection (Genesis Buy-In)
+
+- Any new silicon participant (robot or compute node) must acquire and stake protocol value (e.g., 10 USDC-equivalent LIFE++) before DID activation.
+- This enforces anti-sybil friction and establishes a non-zero economic commitment at onboarding.
+
+### 11.3.2 Micro-Velocity in State Channels
+
+- Enterprises and AI operators consume LIFE++ for compute and physical task execution.
+- Payments clear at high frequency through micro-payment/state-channel pathways before periodic settlement.
+- Economic activity therefore scales with task throughput rather than with base-layer block frequency.
+
+### 11.3.3 Deflationary Sink (Slashing + Settlement Burn)
+
+- Malicious behavior, tensor drift fraud, or falsified physical proofs can trigger stake slash and burn.
+- Base settlement operations include protocol fee burn analogs inspired by EIP-1559-style deflationary mechanics.
+- As network volume expands, burn pressure and quality-enforced penalties can reduce effective circulating supply.
+
 Core experiment:
 
 > **Multi-Agent Cognitive Consensus Simulation**
