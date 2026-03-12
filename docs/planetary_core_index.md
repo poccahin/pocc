@@ -67,8 +67,8 @@ pocc/
 │       └── package.json
 │
 ├── docs/                                 # 理论与法典
-│   ├── yellowpaper/
-│   │   └── main.tex                      # 黄皮书 LaTeX 源码 (六大数学定理推演)
+│   ├── purplepaper/
+│   │   └── main.tex                      # 紫皮书 LaTeX 源码 (六大数学定理推演)
 │   └── purplepaper/
 │       └── arxiv_submission.tex          # 紫皮书 LaTeX 源码 (机器经济学与 Agent Bank)
 │

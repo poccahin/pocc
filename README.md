@@ -33,9 +33,9 @@ We invite contributors to audit, break, and rebuild the stack:
 3. **AI alignment & math researchers** to stress-test semantic drift and adversarial robustness assumptions.
 4. **Hardware & robotics partners** to connect ROS2 rigs and validate semantic hard-fork behavior in the real world.
 
-### 📜 The Yellowpaper & Code
+### 📜 The Purplepaper & Code
 
-* **Math:** [Life++ Yellowpaper (PDF)](./docs/yellowpaper_v_final.pdf)
+* **Math:** [Life++ Purplepaper (PDF)](./docs/purplepaper_v_final.pdf)
 * **Code:** [Kardashev V0.1 Monorepo](.)
 * **Architecture Blueprint:** [Planetary Core Full-Stack Index](./docs/planetary_core_index.md)
 * **Kardashev Scaling Blueprint (ZH):** [10^11 Agent Scaling Blueprint](./docs/kardashev_type1_scaling_blueprint_zh.md)
@@ -182,7 +182,7 @@ make spin-devnet
 
 We are calling on top-tier cryptographers, roboticists, macro-economists, legal scholars, and philosophers. Whether you write Zig for embedded systems, Rust for Solana smart contracts, or Python for hypergraph neural networks, your contributions are required.
 
-Read the **[Purplepaper (PDF)](./docs/yellowpaper_v_final.pdf)**, the **[Purplepaper (Markdown Draft)](./docs/lifeplusplus_yellow_paper.md)**, and review our **[CONTRIBUTING.md](./CONTRIBUTING.md)** to begin.
+Read the **[Purplepaper (PDF)](./docs/purplepaper_v_final.pdf)**, the **[Purplepaper (Markdown Draft)](./docs/lifeplusplus_purple_paper.md)**, and review our **[CONTRIBUTING.md](./CONTRIBUTING.md)** to begin.
 
 > *"Tools out of bounds is the system's greatest transgression. We build machines to reshape the physical universe's order, not to correct the chaos of the human soul."*
 > — The Life++ Foundation
