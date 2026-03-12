@@ -1,0 +1,12 @@
+[package]
+name = "governance-and-rwa"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ahin-nervous-system = { path = "../ahin-nervous-system" }
+silicon-economy-layer = { path = "../silicon-economy-layer" }
+openclaw-edge-runtime = { path = "../openclaw-edge-runtime" }
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"
+uuid = { version = "1.4", features = ["v4"] }

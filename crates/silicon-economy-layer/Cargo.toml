@@ -1,0 +1,12 @@
+[package]
+name = "silicon-economy-layer"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+pocc-collaboration-protocol = { path = "../pocc-collaboration-protocol" }
+ahin-nervous-system = { path = "../ahin-nervous-system" }
+serde = { version = "1.0", features = ["derive"] }
+sha2 = "0.10"
+uuid = { version = "1.4", features = ["v4"] }
+thiserror = "1.0"

@@ -1,0 +1,9 @@
+[package]
+name = "openclaw-edge-runtime"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio = { version = "1.0", features = ["full", "sync", "time"] }
+async-trait = "0.1"
+thiserror = "1.0"
