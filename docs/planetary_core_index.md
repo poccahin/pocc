@@ -24,7 +24,7 @@ pocc/
 │
 ├── 1_ahin_nervous_system/                # L1 全局神经网与时空路由 (Rust / Tokio)
 │   ├── src/
-│   │   ├── cr_plus_gravity.rs            # CR+ 算力引力分配算法
+│   │   ├── geo_spatial_dht.rs            # CR+ 算力引力分配算法
 │   │   ├── eclipse_downgrade.rs          # 日食降级协议 (跨域 BFT 物理断网容错)
 │   │   └── universal_orchestrator.rs     # 🚀 【核心总线】跨栈调度引擎 (缝合所有层级)
 │   └── Cargo.toml
