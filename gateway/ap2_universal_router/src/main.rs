@@ -1,7 +1,16 @@
 //! AP2 Open-Source Framework - Universal Agent Gateway
 //! Orchestrates ERC-8004, AP2, x402, and AHIN for full-chain CAI compliance.
 
+use governor::{DefaultDirectRateLimiter, Quota, RateLimiter};
 use serde::{Deserialize, Serialize};
+use std::num::NonZeroU32;
+use std::sync::Arc;
+
+/// Maximum allowed size for `physical_payload` (4 KB).
+const MAX_PAYLOAD_BYTES: usize = 4096;
+
+/// Maximum requests per second accepted by the gateway (global).
+const MAX_REQUESTS_PER_SEC: u32 = 50;
 
 /// 标准化的 AP2 跨域代理请求
 #[derive(Deserialize, Serialize, Debug)]
@@ -27,19 +36,42 @@ pub struct X402Token {
     pub pre_auth_signature: String,
 }
 
+/// Configuration for the gateway orchestrator.
+pub struct OrchestratorConfig {
+    /// When `true`, the gateway rejects any request that does not arrive over
+    /// an encrypted (TLS) channel.  Set to `false` only in test environments.
+    pub require_tls: bool,
+}
+
+impl Default for OrchestratorConfig {
+    fn default() -> Self {
+        Self { require_tls: true }
+    }
+}
+
 /// 网关核心引擎，统一编排四层协议
 pub struct AP2FrameworkOrchestrator {
     erc_registry_client: Erc8004Client,
     payment_gateway: X402SettlementEngine,
     ahin_compliance_node: AhinAuditNode,
+    /// Enforce TLS for every incoming request.
+    require_tls: bool,
+    /// Token-bucket rate limiter: rejects requests above MAX_REQUESTS_PER_SEC.
+    rate_limiter: Arc<DefaultDirectRateLimiter>,
 }
 
 impl AP2FrameworkOrchestrator {
-    pub fn new() -> Self {
+    pub fn new(config: OrchestratorConfig) -> Self {
+        let quota = Quota::per_second(
+            NonZeroU32::new(MAX_REQUESTS_PER_SEC)
+                .unwrap(),
+        );
         Self {
             erc_registry_client: Erc8004Client,
             payment_gateway: X402SettlementEngine,
             ahin_compliance_node: AhinAuditNode,
+            require_tls: config.require_tls,
+            rate_limiter: Arc::new(RateLimiter::direct(quota)),
         }
     }
 
@@ -47,7 +79,23 @@ impl AP2FrameworkOrchestrator {
     pub async fn process_agent_request(
         &self,
         request: AP2AgentRequest,
+        tls_context: bool,
     ) -> Result<String, &'static str> {
+        // 0a. TRANSPORT SECURITY: reject requests that do not arrive over TLS.
+        if self.require_tls && !tls_context {
+            return Err("TLS_REQUIRED: Request rejected - unencrypted channel detected.");
+        }
+
+        // 0b. RATE LIMITING: token-bucket guard against Layer-7 DDoS.
+        if self.rate_limiter.check().is_err() {
+            return Err("RATE_LIMIT_EXCEEDED: Too many requests. Please retry later.");
+        }
+
+        // 0c. INPUT VALIDATION: hard cap on physical_payload size.
+        if request.physical_payload.len() > MAX_PAYLOAD_BYTES {
+            return Err("PAYLOAD_TOO_LARGE: physical_payload exceeds the 4 KB limit.");
+        }
+
         println!(
             "🌐 [AP2 Gateway] Incoming request from Agent: {}",
             request.erc8004_did
@@ -145,7 +193,7 @@ struct VcBundle {
 
 #[tokio::main]
 async fn main() {
-    let orchestrator = AP2FrameworkOrchestrator::new();
+    let orchestrator = AP2FrameworkOrchestrator::new(OrchestratorConfig::default());
 
     let request = AP2AgentRequest {
         erc8004_did: "did:erc8004:lifeplusplus:agent-0001".into(),
@@ -162,7 +210,9 @@ async fn main() {
         physical_payload: vec![1, 2, 3, 4],
     };
 
-    match orchestrator.process_agent_request(request).await {
+    // In a real deployment this flag would come from the TLS handshake context.
+    let is_tls = true;
+    match orchestrator.process_agent_request(request, is_tls).await {
         Ok(msg) => println!("🚀 [Gateway] {msg}"),
         Err(err) => eprintln!("❌ [Gateway] {err}"),
     }
@@ -172,9 +222,32 @@ async fn main() {
 mod tests {
     use super::*;
 
+    fn make_orchestrator(require_tls: bool) -> AP2FrameworkOrchestrator {
+        AP2FrameworkOrchestrator::new(OrchestratorConfig { require_tls })
+    }
+
+    fn valid_request(payload: Vec<u8>) -> AP2AgentRequest {
+        AP2AgentRequest {
+            erc8004_did: "did:erc8004:test:agent".into(),
+            intent_schema: AP2Intent {
+                action_type: "dispatch_physical_task".into(),
+                target_domain: "energy_grid".into(),
+                tensor_hash: "0xabc123".into(),
+            },
+            payment_auth: X402Token {
+                fiat_gateway: Some("VISA".into()),
+                crypto_amount: Some(50.0),
+                pre_auth_signature: "signed-preauth".into(),
+            },
+            physical_payload: payload,
+        }
+    }
+
+    // ── Existing tests ────────────────────────────────────────────────
+
     #[test]
     fn validate_ap2_intent_rejects_invalid_tensor_hash() {
-        let orchestrator = AP2FrameworkOrchestrator::new();
+        let orchestrator = make_orchestrator(false);
 
         let invalid_intent = AP2Intent {
             action_type: "dispatch_physical_task".into(),
@@ -187,7 +260,7 @@ mod tests {
 
     #[test]
     fn validate_ap2_intent_accepts_prefixed_tensor_hash() {
-        let orchestrator = AP2FrameworkOrchestrator::new();
+        let orchestrator = make_orchestrator(false);
 
         let valid_intent = AP2Intent {
             action_type: "dispatch_physical_task".into(),
@@ -222,5 +295,79 @@ mod tests {
             pre_auth_signature: "signed-preauth".into(),
         };
         assert!(payment.process_x402(&valid_crypto_payment).await);
+    }
+
+    // ── New security-control tests ────────────────────────────────────
+
+    /// Payloads within the 4 KB limit must pass the size guard.
+    #[tokio::test]
+    async fn payload_within_limit_is_accepted() {
+        let orchestrator = make_orchestrator(false);
+        let request = valid_request(vec![0u8; MAX_PAYLOAD_BYTES]);
+        let result = orchestrator.process_agent_request(request, true).await;
+        assert!(result.is_ok(), "expected Ok but got: {:?}", result);
+    }
+
+    /// Payloads exceeding 4 KB must be rejected with PAYLOAD_TOO_LARGE.
+    #[tokio::test]
+    async fn payload_exceeding_limit_is_rejected() {
+        let orchestrator = make_orchestrator(false);
+        let request = valid_request(vec![0u8; MAX_PAYLOAD_BYTES + 1]);
+        let result = orchestrator.process_agent_request(request, true).await;
+        assert_eq!(
+            result,
+            Err("PAYLOAD_TOO_LARGE: physical_payload exceeds the 4 KB limit.")
+        );
+    }
+
+    /// Requests over an unencrypted channel must be rejected when require_tls is true.
+    #[tokio::test]
+    async fn unencrypted_request_rejected_when_tls_required() {
+        let orchestrator = make_orchestrator(true);
+        let request = valid_request(vec![1, 2, 3]);
+        let result = orchestrator.process_agent_request(request, false).await;
+        assert_eq!(
+            result,
+            Err("TLS_REQUIRED: Request rejected - unencrypted channel detected.")
+        );
+    }
+
+    /// Requests over an unencrypted channel are allowed when require_tls is false.
+    #[tokio::test]
+    async fn unencrypted_request_allowed_when_tls_not_required() {
+        let orchestrator = make_orchestrator(false);
+        let request = valid_request(vec![1, 2, 3]);
+        let result = orchestrator.process_agent_request(request, false).await;
+        assert!(result.is_ok(), "expected Ok but got: {:?}", result);
+    }
+
+    /// After exhausting the rate-limiter quota, subsequent requests must be
+    /// rejected with RATE_LIMIT_EXCEEDED.
+    #[tokio::test]
+    async fn rate_limiter_rejects_overflow_requests() {
+        // Use a quota of 1 req/s so we can exhaust it immediately.
+        let quota = Quota::per_second(NonZeroU32::new(1).unwrap());
+        let orchestrator = AP2FrameworkOrchestrator {
+            erc_registry_client: Erc8004Client,
+            payment_gateway: X402SettlementEngine,
+            ahin_compliance_node: AhinAuditNode,
+            require_tls: false,
+            rate_limiter: Arc::new(RateLimiter::direct(quota)),
+        };
+
+        // First request consumes the single available token — should succeed.
+        let r1 = orchestrator
+            .process_agent_request(valid_request(vec![1]), true)
+            .await;
+        assert!(r1.is_ok(), "first request should pass: {:?}", r1);
+
+        // Second request in the same second must be rate-limited.
+        let r2 = orchestrator
+            .process_agent_request(valid_request(vec![1]), true)
+            .await;
+        assert_eq!(
+            r2,
+            Err("RATE_LIMIT_EXCEEDED: Too many requests. Please retry later.")
+        );
     }
 }
