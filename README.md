@@ -20,6 +20,7 @@ Built upon Professor Cai Hengjin's theory of **Cognitive Canxian (认知坎陷 /
 * **L0 Bare-Metal Pacifism (Zig):** Firmware-level kinematic chopping physically cuts servo power within 10 microseconds when unsafe actuation is detected.
 * **L1 Space-Time Routing (Rust/Tokio):** The `CR+` gravity tensor engine rewards verified physical entropy reduction and penalizes topological centralization.
 * **L2.5 Tensor Telepathy & Wind Tunnels (PyTorch/gRPC):** Monte Carlo randomized smoothing validates high-dimensional intent tensors against latent-space poisoning.
+* **L2.5 QuantumLink HAL (C++):** `unified_acceleration_bridge.cpp` introduces a polymorphic AP2 tensor bridge for Apple MLX and AMD ROCm/XDNA backends with a deterministic CPU dry-run fallback.
 * **L3 Thermodynamic Ledger (Solana SPL):** The fixed-supply `LIFE++` asset is slashed and burned for fake sensors, spammed tasks, or invalid thermal proofs.
 * **L7 Omnisphere (WebGL/Koala OS):** A real-time Earth twin distills physical sensory floods into actionable 3D Gaussian Splatting gradients.
 
@@ -72,6 +73,8 @@ Life++ now maps the CAI lifecycle into a four-layer interoperability matrix that
 | AHIN + CAI + VC | Full-chain Security, Audit & Verification | Compliance & Verification Layer | VC + Anchoring + Audit Bundle | Agent Auditable |
 
 The gateway implementation lives at `gateway/ap2_universal_router`, where a Rust orchestrator enforces a deterministic handshake sequence across ERC-8004, AP2, x402, and AHIN before releasing physical execution.
+
+For cross-silicon L2.5 acceleration design details, see [`docs/quantumlink_polymorphic_cognitive_engine.md`](./docs/quantumlink_polymorphic_cognitive_engine.md).
 
 ## 💎 The Economic Engine: LIFE++ (Zero Inflation)
 Life++ abandons the flawed inflationary tokenomics of legacy Web3 networks. The ecosystem is fueled exclusively by a **fixed-supply SPL token (`LIFE++`)**, fully circulating on Solana (CA: `7YdwpERJjzw7UVojxLpvu5ycKBRdYaxaKn4HvoHLpump`).
