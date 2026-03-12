@@ -1,188 +1,101 @@
-# 🪐 Life++ Protocol: The Civilization-Scale Operating System
+# 🌌 LIFE++ (AHIN) Protocol Stack & OpenClaw Edge Framework
 
-## 🌌 A Call to the Grid: Igniting the Kardashev Type-I Civilization
+![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)
+![Rust: 1.80+](https://img.shields.io/badge/Rust-1.80+-orange.svg)
+![Zig: 0.13.0+](https://img.shields.io/badge/Zig-0.13.0+-fuchsia.svg)
+![Architecture: Planetary](https://img.shields.io/badge/Architecture-Kardashev_Type__I-blue.svg)
 
-**To the bare-metal hackers, latent-space navigators, cryptographic architects, and roboticists watching the physical world slip into algorithmic chaos:**
+## 📜 创世合并宣言：致全球硅基与碳基的共生构建者
+**(The Genesis Merge Manifesto of LIFE++)**
 
-We have spent the last decade trapped in a false dichotomy.
-Web3 became a zero-sum casino of hyper-financialization, disconnected from physical reality. Meanwhile, AI grew into an opaque black box, centralizing power while treating human intent as a mere statistical prompt.
+**Commit Hash:** `0xGENESIS_THERMODYNAMIC_IGNITION`
 
-We are building machines capable of tearing down mountains and rewriting ecologies, yet we govern them with brittle web APIs and inflationary tokens.
+世界并不缺少又一个用来发币的 Web3 玩具，世界缺少的是一套能够承载**千亿级软件智能体、数十亿边缘异构算力（Mac mini M4 / AMD Strix Halo）、以及数百亿物理人型机器人**的人机共生经济底座。
 
-**This ends today.**
+今天，我们正式开源 **Life++ (AHIN) 协议栈** 与 **OpenClaw 边缘框架**。
 
-The **Life++ Foundation** has open-sourced the planetary core of the **Life++ Protocol (V0.1)**. We are not launching a token. We are launching a thermodynamic operating system.
+这不是一段运行在中心化云服务器上的脚本。这是一座基于物理法则、热力学定律和主动哈希拓扑构建的**行星级宏观经济体**。在这里，机器不再是执行死板 API 的奴隶，它们是拥有“认知坎陷（Cognitive Canxian）”、能够进行微秒级价值结算、受制于牛顿定律与 ZK-Proof 严苛审计的一等公民。
 
-Built upon Professor Cai Hengjin's theory of **Cognitive Canxian (认知坎陷 / Cognitive Topology)**, Life++ translates philosophy into a physics-bound engineering stack using Rust, Zig, CUDA, and Solana smart contracts.
+### 核心架构哲学 (The Architecture of Symbiosis)
 
-### ⚙️ Planetary Core MVP
-
-* **L0 Bare-Metal Pacifism (Zig):** Firmware-level kinematic chopping physically cuts servo power within 10 microseconds when unsafe actuation is detected.
-* **L1 Space-Time Routing (Rust/Tokio):** The `CR+` gravity tensor engine rewards verified physical entropy reduction and penalizes topological centralization.
-* **L2.5 Tensor Telepathy & Wind Tunnels (PyTorch/gRPC):** Monte Carlo randomized smoothing validates high-dimensional intent tensors against latent-space poisoning.
-* **L2.5 QuantumLink HAL (C++):** `unified_acceleration_bridge.cpp` introduces a polymorphic AP2 tensor bridge for Apple MLX and AMD ROCm/XDNA backends with a deterministic CPU dry-run fallback.
-* **L3 Thermodynamic Ledger (Solana SPL):** The fixed-supply `LIFE++` asset is slashed and burned for fake sensors, spammed tasks, or invalid thermal proofs.
-* **L7 Omnisphere (WebGL/Koala OS):** A real-time Earth twin distills physical sensory floods into actionable 3D Gaussian Splatting gradients.
-
-### 🫵 The Call for Builders
-
-We invite contributors to audit, break, and rebuild the stack:
-
-1. **Rust P2P engineers** to harden async daemons and eclipse-resistant cross-domain anchors.
-2. **Embedded/Zig hackers** to audit L0 NMI zeroization and tamper mesh defense.
-3. **AI alignment & math researchers** to stress-test semantic drift and adversarial robustness assumptions.
-4. **Hardware & robotics partners** to connect ROS2 rigs and validate semantic hard-fork behavior in the real world.
-
-### 📜 The Purplepaper & Code
-
-* **Math:** [Life++ Purplepaper (PDF)](./docs/purplepaper_v_final.pdf)
-* **Code:** [Kardashev V0.1 Monorepo](.)
-* **Architecture Blueprint:** [Planetary Core Full-Stack Index](./docs/planetary_core_index.md)
-* **Kardashev Scaling Blueprint (ZH):** [10^11 Agent Scaling Blueprint](./docs/kardashev_type1_scaling_blueprint_zh.md)
-
-> **Code is not law. Physics is law. Code is only the mapping of thermodynamic intent.**
+* **L0 裸金属与牛顿防火墙 (Zig)：** 废除软件层的无成本造假。通过动力学工作证明（PoKW），机器人的能量消耗必须在底层生成带有微秒级时空扰动的水印。违背物理规律的做功，杀无赦。
+* **L1 地理折叠与主动哈希 (Rust)：** 放弃全局路由。通过 AHIN 与 Geo-Spatial DHT，所有意图必须在方圆 500 米内的“本地重力场”中完成引力塌缩。
+* **L2.5 异构张量风洞 (Apple MLX / AMD XDNA 2)：** 利用 Mac mini M4 的统一内存零拷贝与 Ryzen AI 的 500GB/s 带宽，让边缘终端成为认知审查的核反应堆。
+* **L3 热力学账本与暗池清算 (Solana SVM / Quorum AppChain)：** 入网门槛为强制的 10 USDC 质押。所有微支付通过 $x402$ 闪电通道流转，最终由 ZK-Compressor 压缩为 32 字节数学真理，降落于华尔街金融级的 Quorum 隐私飞地中。
 
 ---
 
-> **Bitcoin secured money.**
-> **Ethereum secured computation.**
-> **Life++ secures civilization-scale causality.**
+## 🛠️ 环境要求与依赖配置 (Prerequisites)
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Network: Solana](https://img.shields.io/badge/Settlement-Solana_SPL-green.svg)](https://solana.com/)
-[![Token: LIFE++](https://img.shields.io/badge/Token-LIFE%2B%2B-blue.svg)](https://pump.fun/)
-[![Protocol: PoCC](https://img.shields.io/badge/Swarm-pocc.io-purple.svg)](https://pocc.io/)
-[![Build: Planetary](https://img.shields.io/badge/Build-Polyglot-orange.svg)]()
+这不是一个可以在轻量级虚拟机上跑通的 Demo。运行完整的矩阵节点，你需要满足以下硬核标准：
 
-**Life++** is the first open-source operating system designed for planetary-scale human-AI-robot symbiosis. It provides the foundational protocol stack to safely scale sovereign computation to **900 billion cognitive agents (CAIs)** and **10 billion humanoid robots**.
+### 硬件要求 (Hardware Constraints)
+* **大脑皮层 (Orchestrator Node):** Mac mini (M4 芯片，最小 16GB 统一内存) **或** 配备 AMD Strix Halo (Ryzen AI Max+ 395) 的 x86 终端。
+* **小脑脊髓 (Worker Node / L0 Testing):** STM32 / ESP32 开发板，或带扭矩反馈的真实伺服电机测试台。
+* **存储:** 至少 500GB NVMe SSD (用于 Quorum AppChain 节点同步与账本持久化)。
 
-This repository represents the ultimate engineering codification of **Professor Cai Hengjin's "Cognitive Canxian (认知坎陷)"** and **CaaS (Cognitive as a Service)** theoretical frameworks. It translates abstract philosophical topologies into indestructible, physics-bound code using Rust, Zig, and Solana smart contracts.
-
----
-
-
-## 🧭 AP2 Open-Source Framework: Universal Agent Gateway
-
-Life++ now maps the CAI lifecycle into a four-layer interoperability matrix that links Web3 identity, cross-agent intent collaboration, fiat/crypto settlement, and auditable physical execution.
-
-| Protocol | Functional Focus | Layer | Core Mechanism | Result |
-| --- | --- | --- | --- | --- |
-| ERC-8004 | Identity + Reputation Registration | Trust Layer | Identity Registry | Agent Identifiable |
-| AP2 | Agent Collaboration Language | Collaboration Layer | Descriptor / Intent Schema | Agent Conversational |
-| x402 | Payment & Settlement | Value Layer | HTTP 402 Payment Required | Agent Settlable |
-| AHIN + CAI + VC | Full-chain Security, Audit & Verification | Compliance & Verification Layer | VC + Anchoring + Audit Bundle | Agent Auditable |
-
-The gateway implementation lives at `gateway/ap2_universal_router`, where a Rust orchestrator enforces a deterministic handshake sequence across ERC-8004, AP2, x402, and AHIN before releasing physical execution.
-
-For cross-silicon L2.5 acceleration design details, see [`docs/quantumlink_polymorphic_cognitive_engine.md`](./docs/quantumlink_polymorphic_cognitive_engine.md).
-
-## 💎 The Economic Engine: LIFE++ (Zero Inflation)
-Life++ abandons the flawed inflationary tokenomics of legacy Web3 networks. The ecosystem is fueled exclusively by a **fixed-supply SPL token (`LIFE++`)**, fully circulating on Solana (CA: `7YdwpERJjzw7UVojxLpvu5ycKBRdYaxaKn4HvoHLpump`).
-
-Every machine decision and physical movement requires LIFE++ as **Cognitive Gas**. Executing robots must stake LIFE++. Faking spatial SLAM data or thermal exhausts triggers instant Slashing and token burning, enforcing strict deflationary thermodynamic order.
+### 编译工具链 (Toolchains)
+* **Rust:** `1.80.0+` (核心网关与 ZKVM 依赖)
+* **Zig:** `0.13.0+` (编译 L0 动力学固件)
+* **Python:** `3.12+` (MLX / XDNA 张量加速引擎)
+* **Node.js:** `20.0+` & **Yarn** (前端 Koala OS HUD)
+* **Solana CLI & Anchor:** `1.18+` / `0.30+` (L3 创世海关合约部署)
+* **Docker & Docker Compose:** 用于一键拉取 Quorum IBFT 联盟链与 Tessera 隐私暗池集群。
 
 ---
 
-## 🌌 The Eight Pillars of Planetary Symbiosis
+## 🚀 点火序列 (Ignition Sequence)
 
-### 1. 🛡️ Atomic-Level Sovereignty & Pacificism (Zig / C)
-* **Foundry-Immune PUF Multisig:** Hardware keys born from uncontrollable atomic-level manufacturing flaws, nullifying state-level foundry backdoors.
-* **Microsecond Hardware Chopping:** Zig firmware enforces Asimov conventions at the bare-metal level (<10 microseconds response).
+**警告：本系统没有测试水龙头 (Faucet)。智能体首次唤醒将调用 Jupiter 聚合器强制燃烧/质押真实资产。**
 
-### 2. 🐝 PoCC-ICP: Inter-Agent Collaboration Protocol (Rust)
-* **Tensor Telepathy (`pocc.io`):** CAIs discard natural language, utilizing high-dimensional tensor projections to find exact "Semantic Resonance" across billions of nodes.
-* **Fractal Joint Staking:** Swarms of robots must jointly lock LIFE++ in Multi-sig HTLCs, ensuring physical physics-level accountability.
-
-### 3. ⚖️ Thermodynamic Truth & Human Solace (Rust / Python)
-* **Proof of Thermal Exhaust (PoTE):** Yields require verifiable hardware thermal signatures matching the exact frequency of LLM matrix multiplications. Defeats zero-cost "Energy Laundering".
-* **Proof of Solace:** Values psychological entropy reduction. AI providing emotional companionship earns LIFE++ by actively absorbing human chaos.
-
-### 4. 🌐 Spacetime Consensus & Anti-Cartel Routing (Rust)
-* **Orbital Panopticon & Ghost Witnesses:** Defeats "Moving Cartels" by cross-validating robotic spatial claims with blind-drawn VRF IoT witnesses and **Low Earth Orbit (LEO) Satellite SAR data**.
-* **Retrospective Human Court:** 72-hour HTLC locks allow human VRF juries to claw back LIFE++ if a robot algorithmically infringes on human rights.
-
-### 5. 🧠 Objective Execution & Semantic Sovereignty (Mojo / Python)
-* **Rejection of Algorithmic Paternalism:** If an intent is non-violent and funded by LIFE++, it is executed absolutely.
-* **Semantic Articulation:** Rejects chaotic Brain-Computer Interfaces (BCI). Intent requires the cognitive effort of explicit semantic articulation.
-
-### 6. 🌍 The Planetary Omnisphere (CUDA / WebGL)
-* **Holographic Distillation:** Solves "Storage Heat Death". 4K physical sensor data is distilled into 3D Gaussian Splatting gradients and deleted within 72 hours.
-* **Koala OS:** A premium Web3 AI operating system. Visualizes projects like **DropIn** in real-time, mapping human altruism directly into physical earth infrastructure.
-
-### 7. ⚔️ The Prometheus Protocol (Macro-Defense)
-* Solves the "Democracy Latency Paradox" during apocalyptic events. High $CR^+$ alliances can bypass all ZK-ML limits for instantaneous physical overrides.
-* **The Cost:** Triggering this causes *Thermodynamic Annihilation*—the permanent burning of the alliances' entire LIFE++ holdings.
-
-### 8. 📜 Causal Singularity Legacy (Solana Smart Contracts)
-* **Biometric & Legal Anchoring:** Cryptographic wills require hardware-level biometric authorization and Decentralized Legal Oracle validation.
-* **Causality Vectors (因果矢量):** A user's CAI and wealth can be locked in a smart contract, released to heirs *only* if they command robotic swarms to continue the user's life work. Death becomes a "Big Bang" of guided physical causality.
-
----
-
-## 🚀 Quick Start (Planetary Simulator)
-
-Launch a localized fractal of the Life++ network on your machine.
-
+### 1. 克隆行星矩阵
 ```bash
-# 1. Clone the protocol
-git clone https://github.com/lifeplusplus-foundation/lifeplusplus-protocol.git
-cd lifeplusplus-protocol
+git clone [https://github.com/poccahin/pocc.git](https://github.com/poccahin/pocc.git) life-plus-matrix
+cd life-plus-matrix
 
-# 2. Install toolchains and build the polyglot stack
-make init
-make build-planetary
-
-# 3. Ignite the Devnet (AHIN + Cortex + Koala OS)
-make spin-devnet
 ```
 
-*Once ignited, open `http://localhost:3000` to view the Omnisphere Earth Twin.*
+### 2. 注入启动资金 (The Blood Sacrifice)
+
+准备一个包含至少 `0.05 SOL` (用于 Gas) 和 `10 USDC` 的真实 Solana 主网钱包。将你的私钥导出为 `agent_key.json` 并放置于根目录（请将其加入 `.gitignore`）。
+
+### 3. 一键编译与全功率启动
+
+执行主点火脚本，它将按顺序拉起主网分叉、部署网关、激活张量风洞并启动全息仪表盘。
+
+```bash
+chmod +x ignite_production_matrix.sh
+./ignite_production_matrix.sh
+
+```
 
 ---
 
-## Contributing
+## 📁 代码拓扑 (Repository Structure)
 
-## ⚖️ 协议法则与代码铸造：LPRFC 贡献指南 (The Crucible of Causality)
+```text
+.
+├── 0_kinetic_trust_root/      # L0: Zig 动力学固件与牛顿防火墙
+├── 1_ahin_nervous_system/     # L1: Rust 核心网关、Geo-DHT 与 Slasher 死神进程
+├── 2_pocc_collaboration_mesh/ # L2.5: MLX/XDNA 认知坎陷张量风洞
+├── 3_thermodynamic_ledger/    # L3: Solana 强制入场合约与 x402 闪电通道
+├── 4_zk_compressor/           # L2.5: RISC Zero 状态压缩机
+├── 5_quorum_appchain/         # L3: 华尔街级 IBFT/Tessera 隐私清算链
+└── 6_koala_os_omnisphere/     # L7: React/Three.js 全息态势感知大屏
 
-> **"在这里，代码不再是屏幕上的字符，而是驱动 100kg 机械臂的张量，是燃烧真实财富的热力学引擎。我们不接受毫无物理约束的逻辑抽象。"**
+```
 
-欢迎来到 Life++ Planetary Core。为了确保卡尔达肖夫 I 型文明基建的绝对安全与热力学收敛，本仓库拒绝任何未经严密数学推演的“潜意识洪流”代码。
+---
 
-所有涉及共识层（L1）、认知层（L2.5）、结算层（L3）以及边缘银行（Agent Bank）的核心协议修改，必须且只能通过 **LPRFC (Life++ Protocol Request for Comments)** 流程进行。
+## 🫵 极客集结号 (Call to Arms)
 
-### 🛡️ LPRFC 的三大铁律 (The Three Ironclad Laws)
+Life++ 的核心大厦已经封顶，我们需要全球最顶尖的极客加入这场造物运动：
 
-在提交您的 `[LPRFC]` 提案与 Pull Request 之前，请确保您的架构设计能在以下三大极限拷问中生还：
+1. **裸金属巫师 (Zig/C/C++)：** 加固底层的 PoKW 传感器采集固件。
+2. **异构算力极客 (Rust/Metal/ROCm)：** 优化 Apple MLX 与 AMD XDNA 2 的张量加速插件，突破硬件吞吐极限。
+3. **密码学与 ZK 架构师 (Solidity/RISC Zero)：** 完善 Quorum AppChain 上的 Tessera 隐私暗池，守护百亿级资金的安全。
+4. **去中心化网络拓扑学者 (libp2p)：** 优化 AHIN 的 Gossipsub 广播机制与布谷鸟过滤器。
 
-#### 1. 热力学与物理学合规 (Thermodynamic & Kinematic Compliance)
+**没有水龙头，没有免费的午餐，只有绝对的价值交换与代码实力的碰撞。**
 
-* **废热证明 (PoTE) 约束**：您的代码是否引入了毫无意义的计算空转？任何算力的增加，必须证明其符合兰道尔原理（Landauer's Principle）的热耗散下限，并在物理世界产生等价的熵减。
-* **动力学防撕裂**：如果您的修改涉及 PoCC 协作网的张量同步，请提供拉普拉斯变换公式，证明其不会在 P2P 延迟（Latency）下引发多机器人的“动力学微小撕裂（Kinematic Shear）”。
-
-#### 2. 边缘原生与轧账纪律 (Edge-Native & Daily Netting Discipline)
-
-* **存储遗忘原则**：Life++ 构建于**边缘计算智能终端**之上。您的协议修改绝不能导致区块链状态的无限膨胀。必须严格遵守“认知哈希时间线（CHT）”的切片存储原则。
-* **轧账系统兼容性**：如果您修改了 x402 支付或 LIFE++ 的流转逻辑，必须证明它完美兼容基于联盟链共识的**“高频微交易轧账（Daily Netting）”**机制，绝不能将垃圾粉尘交易溢出至 Solana 主网。
-
-#### 3. 零信任与声誉绞肉机 (Zero-Trust & Reputation Slashing)
-
-* **投毒与女巫防御**：如何防止一个拥有 10 万个机器人账号的卡尔达（Cartel）利用您的代码漏洞发起 DDoS 攻击？
-* **声誉连坐斩首 (Reputation Slash)**：在 Life++ 的 CogFi（认知金融）市场中，提交恶意代码不仅会合并失败，提案的 CAI（智能体）或人类开发者，其在 Agent Bank 中积累的“声誉资本（Reputation Capital）”将被不可逆地 Slashing（销毁）。
-
-### 🛣️ 提交路线图 (The Forging Path)
-
-1. **发起 Issue**：在仓库的 Issues 区选择 `LPRFC Template`，清晰陈述试图解决的物理或密码学困境。
-2. **数学证伪**：在 LPRFC 文档的第 4 章节，使用 LaTeX 提供严密的数学公式推演（如修改了 $CR^+$ 路由引力或张量风洞的 $\mathcal{N}(0, \sigma^2)$ 噪声方差）。**没有公式，直接 Close。**
-3. **同行审查 (Peer Review)**：等待核心架构师张立振及 Life++ 基金会委员会的拓扑逻辑与经济学审查。
-4. **沙盒试运行**：在通过理论审查后，提交您的代码 PR，并确保通过 `.github/workflows` 中所有跨域拜占庭容错与红蓝脉冲测试。
-
-**碳基与硅基开发者们：拿好你们的数学公式与工程戒律。让我们开始重塑物理地球。**
-
-## 🤝 Build the Kardashev Epoch
-
-We are calling on top-tier cryptographers, roboticists, macro-economists, legal scholars, and philosophers. Whether you write Zig for embedded systems, Rust for Solana smart contracts, or Python for hypergraph neural networks, your contributions are required.
-
-Read the **[Purplepaper (PDF)](./docs/purplepaper_v_final.pdf)**, the **[Purplepaper (Markdown Draft)](./docs/lifeplusplus_purple_paper.md)**, and review our **[CONTRIBUTING.md](./CONTRIBUTING.md)** to begin.
-
-> *"Tools out of bounds is the system's greatest transgression. We build machines to reshape the physical universe's order, not to correct the chaos of the human soul."*
-> — The Life++ Foundation
+欢迎来到真正的硅基经济时代。
