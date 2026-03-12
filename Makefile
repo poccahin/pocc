@@ -20,7 +20,7 @@ train-l2.5:
 
 build-l7:
 	@echo "🌌 Rendering Koala OS Omnisphere (TypeScript)..."
-	cd 7_koala_os_frontend && npm ci && npm run build
+	cd 7_koala_os_frontend && npm run build
 
 ignite-testnet:
 	@echo "🔥 Igniting the Promethean Crucible Testnet..."
