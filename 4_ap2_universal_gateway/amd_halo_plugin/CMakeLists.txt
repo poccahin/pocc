@@ -4,6 +4,8 @@ project(OpenClaw_AMD_Halo_Plugin LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(USE_AMD_XDNA "Enable AMD XDNA runtime path for tensor friction bridge" OFF)
+
 # 🚨 核心逻辑：自动探测 AMD 环境
 if(WIN32)
     message(STATUS "🔍 [AMD] Detecting Windows Ryzen AI SDK...")
@@ -23,7 +25,15 @@ endif()
 add_library(openclaw_amd_halo SHARED
     src/StrixHalo_XDNA_Accelerator.cpp
     src/bridge_ffi.cpp
+    src/xdna_amd_bridge.cpp
 )
+
+if(USE_AMD_XDNA)
+    target_compile_definitions(openclaw_amd_halo PRIVATE USE_AMD_XDNA=1)
+    message(STATUS "🚀 [AMD] USE_AMD_XDNA enabled: building XDNA runtime bridge path.")
+else()
+    message(STATUS "⚠️ [AMD] USE_AMD_XDNA disabled: building deterministic CPU fallback path.")
+endif()
 
 target_link_libraries(openclaw_amd_halo PRIVATE ${AMD_LIBS})
 
