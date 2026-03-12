@@ -1,6 +1,11 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
+pub mod agent_registration_gateway;
+use agent_registration_gateway::{
+    execute_mandatory_buy_in, RegisterAgentPersona, RegistrationGatewayError, MIN_ENTRY_VALUE_USDT,
+};
+
 declare_id!("BankXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
 pub const BIPS_DENOMINATOR: u128 = 10_000;
@@ -9,6 +14,19 @@ pub const MINIMUM_GENESIS_STAKE: u64 = 10_000_000;
 #[program]
 pub mod life_plus_agent_bank {
     use super::*;
+
+    pub fn register_agent_persona(
+        ctx: Context<RegisterAgentPersona>,
+        required_life_plus_amount: u64,
+        quoted_entry_value_usdt: u64,
+    ) -> Result<()> {
+        require!(
+            quoted_entry_value_usdt >= MIN_ENTRY_VALUE_USDT,
+            RegistrationGatewayError::EntryValueTooLow
+        );
+
+        execute_mandatory_buy_in(ctx, required_life_plus_amount)
+    }
 
     /// 边缘计算终端（挂机节点）提交 24 小时轧账数据。
     pub fn submit_daily_netting(
