@@ -49,3 +49,7 @@ pocc/
 - `make build-l7`
 - `make ignite-testnet`
 
+
+## 📚 关联文档
+
+- `docs/lifeplusplus_planetary_engineering_blueprint_zh.md`：L0-L4 分层、CTx v0 结构、MVP→Production 路线与安全失效模式。
