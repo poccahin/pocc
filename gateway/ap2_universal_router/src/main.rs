@@ -23,6 +23,7 @@ pub struct AP2Intent {
 pub struct X402Token {
     pub fiat_gateway: Option<String>, // e.g., "VISA", "Alipay", "PayPal"
     pub crypto_amount: Option<f64>,   // e.g., 50.0 LIFE++
+    // 预授权签名是 x402 清算的必填字段，用于防止伪造支付请求。
     pub pre_auth_signature: String,
 }
 
@@ -118,7 +119,14 @@ impl Erc8004Client {
 struct X402SettlementEngine;
 impl X402SettlementEngine {
     async fn process_x402(&self, auth: &X402Token) -> bool {
-        auth.fiat_gateway.is_some() || auth.crypto_amount.unwrap_or(0.0) > 0.0
+        let has_valid_signature = !auth.pre_auth_signature.trim().is_empty();
+        let has_fiat_gateway = auth
+            .fiat_gateway
+            .as_ref()
+            .is_some_and(|gateway| !gateway.trim().is_empty());
+        let has_positive_crypto_amount = auth.crypto_amount.is_some_and(|amount| amount > 0.0);
+
+        has_valid_signature && (has_fiat_gateway || has_positive_crypto_amount)
     }
 }
 
@@ -157,5 +165,62 @@ async fn main() {
     match orchestrator.process_agent_request(request).await {
         Ok(msg) => println!("🚀 [Gateway] {msg}"),
         Err(err) => eprintln!("❌ [Gateway] {err}"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn validate_ap2_intent_rejects_invalid_tensor_hash() {
+        let orchestrator = AP2FrameworkOrchestrator::new();
+
+        let invalid_intent = AP2Intent {
+            action_type: "dispatch_physical_task".into(),
+            target_domain: "energy_grid".into(),
+            tensor_hash: "abc123".into(),
+        };
+
+        assert!(!orchestrator.validate_ap2_intent(&invalid_intent));
+    }
+
+    #[test]
+    fn validate_ap2_intent_accepts_prefixed_tensor_hash() {
+        let orchestrator = AP2FrameworkOrchestrator::new();
+
+        let valid_intent = AP2Intent {
+            action_type: "dispatch_physical_task".into(),
+            target_domain: "energy_grid".into(),
+            tensor_hash: "0xabc123".into(),
+        };
+
+        assert!(orchestrator.validate_ap2_intent(&valid_intent));
+    }
+
+    #[tokio::test]
+    async fn process_x402_requires_signature_and_payment_source() {
+        let payment = X402SettlementEngine;
+
+        let missing_signature = X402Token {
+            fiat_gateway: Some("VISA".into()),
+            crypto_amount: None,
+            pre_auth_signature: "   ".into(),
+        };
+        assert!(!payment.process_x402(&missing_signature).await);
+
+        let missing_payment_source = X402Token {
+            fiat_gateway: Some(" ".into()),
+            crypto_amount: Some(0.0),
+            pre_auth_signature: "signed-preauth".into(),
+        };
+        assert!(!payment.process_x402(&missing_payment_source).await);
+
+        let valid_crypto_payment = X402Token {
+            fiat_gateway: None,
+            crypto_amount: Some(0.01),
+            pre_auth_signature: "signed-preauth".into(),
+        };
+        assert!(payment.process_x402(&valid_crypto_payment).await);
     }
 }
