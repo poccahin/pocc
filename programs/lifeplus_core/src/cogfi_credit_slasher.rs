@@ -3,8 +3,13 @@ use anchor_lang::prelude::*;
 use crate::{errors::LifePlusError, state::*};
 
 #[derive(Accounts)]
+#[instruction(rogue_agent_pubkey: Pubkey)]
 pub struct EnforceDarwinianFilter<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"persona", rogue_agent_pubkey.as_ref()],
+        bump,
+    )]
     pub rogue_agent: Account<'info, AgentPersona>,
     #[account(mut)]
     pub auditor_authority: Signer<'info>,
@@ -24,23 +29,28 @@ pub struct EnforceDarwinianFilter<'info> {
 #[derive(Accounts)]
 #[instruction(worker: Pubkey, orchestrator: Pubkey)]
 pub struct UpdateEigenTrustScore<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"persona", worker.as_ref()],
+        bump,
+    )]
     pub worker_persona: Account<'info, AgentPersona>,
     #[account(
         init_if_needed,
-        payer = fee_payer,
+        payer = orchestrator_authority,
         space = 8 + 32 + 32 + 8,
         seeds = [b"edge", orchestrator.as_ref(), worker.as_ref()],
         bump
     )]
     pub interaction_edge: Account<'info, InteractionEdge>,
     #[account(mut)]
-    pub fee_payer: Signer<'info>,
+    pub orchestrator_authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 pub fn trigger_soulbound_slash(
     ctx: Context<EnforceDarwinianFilter>,
+    rogue_agent_pubkey: Pubkey,
     fraud_evidence_hash: [u8; 32],
 ) -> Result<()> {
     let agent = &mut ctx.accounts.rogue_agent;
@@ -83,6 +93,12 @@ pub fn record_settlement_and_decay(
     orchestrator: Pubkey,
     settled_amount: u64,
 ) -> Result<()> {
+    require_keys_eq!(
+        ctx.accounts.orchestrator_authority.key(),
+        orchestrator,
+        LifePlusError::OrchestratorMismatch
+    );
+
     let edge = &mut ctx.accounts.interaction_edge;
     let persona = &mut ctx.accounts.worker_persona;
 

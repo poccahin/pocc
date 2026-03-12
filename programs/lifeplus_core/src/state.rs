@@ -71,4 +71,5 @@ pub struct CompositeTaskState {
 pub struct SubtaskReward {
     pub subtask_id: u64,
     pub payment_bips: u16,
+    pub worker: Pubkey,
 }

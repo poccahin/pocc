@@ -37,4 +37,8 @@ pub enum LifePlusError {
     InvalidBatchSize,
     #[msg("Batch size exceeds protocol safety ceiling.")]
     BatchSizeTooLarge,
+    #[msg("Worker wallet owner does not match the worker recorded in the subtask reward.")]
+    WorkerWalletMismatch,
+    #[msg("Orchestrator authority does not match the orchestrator recorded for this interaction.")]
+    OrchestratorMismatch,
 }
