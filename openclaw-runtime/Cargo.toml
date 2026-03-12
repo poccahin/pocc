@@ -5,6 +5,7 @@ edition = "2021"
 build = "build.rs"
 
 [dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 
 [build-dependencies]
 cmake = "0.1"

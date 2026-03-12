@@ -1,3 +1,5 @@
+mod gateway_control_plane;
+
 fn main() {
-    println!("openclaw-runtime: unified Cargo build pipeline is configured.");
+    println!("openclaw-runtime: gateway control plane module integrated.");
 }
