@@ -20,7 +20,11 @@ pub struct IntentReceipt {
 #[derive(Accounts)]
 #[instruction(intent_hash: [u8; 32])]
 pub struct VerifyStructuralPoCC<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"persona", fee_payer.key().as_ref()],
+        bump,
+    )]
     pub agent_persona: Account<'info, AgentPersona>,
     #[account(mut)]
     pub ahin_timeline: Account<'info, AhinTimeline>,

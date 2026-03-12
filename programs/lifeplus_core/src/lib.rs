@@ -32,16 +32,18 @@ pub mod lifeplus_core {
 
     pub fn process_x402_micro_settlement(
         ctx: Context<SettleWorkerCTx>,
+        task_id: [u8; 32],
         subtask_id: u64,
     ) -> Result<()> {
-        composite_ctx_settlement::process_x402_micro_settlement(ctx, subtask_id)
+        composite_ctx_settlement::process_x402_micro_settlement(ctx, task_id, subtask_id)
     }
 
     pub fn process_batch_settlement_safe(
         ctx: Context<SettleWorkerCTx>,
+        task_id: [u8; 32],
         batch_size: u32,
     ) -> Result<()> {
-        composite_ctx_settlement::process_batch_settlement_safe(ctx, batch_size)
+        composite_ctx_settlement::process_batch_settlement_safe(ctx, task_id, batch_size)
     }
 
     pub fn record_settlement_and_decay(
@@ -55,8 +57,9 @@ pub mod lifeplus_core {
 
     pub fn trigger_soulbound_slash(
         ctx: Context<EnforceDarwinianFilter>,
+        rogue_agent_pubkey: Pubkey,
         fraud_evidence_hash: [u8; 32],
     ) -> Result<()> {
-        cogfi_credit_slasher::trigger_soulbound_slash(ctx, fraud_evidence_hash)
+        cogfi_credit_slasher::trigger_soulbound_slash(ctx, rogue_agent_pubkey, fraud_evidence_hash)
     }
 }

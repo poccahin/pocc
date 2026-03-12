@@ -8,6 +8,7 @@ const BURN_TAX_DENOMINATOR: u64 = 100;
 const MAX_BATCH_SIZE: u32 = 200;
 
 #[derive(Accounts)]
+#[instruction(task_id: [u8; 32])]
 pub struct SettleWorkerCTx<'info> {
     #[account(mut)]
     pub orchestrator_escrow: Account<'info, TokenAccount>,
@@ -15,13 +16,17 @@ pub struct SettleWorkerCTx<'info> {
     pub worker_wallet: Account<'info, TokenAccount>,
     #[account(mut)]
     pub token_mint: Account<'info, Mint>,
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"composite_task", bank_authority.key().as_ref(), task_id.as_ref()],
+        bump,
+    )]
     pub ctx_state: Account<'info, CompositeTaskState>,
     pub token_program: Program<'info, Token>,
     pub bank_authority: Signer<'info>,
 }
 
-pub fn process_x402_micro_settlement(ctx: Context<SettleWorkerCTx>, subtask_id: u64) -> Result<()> {
+pub fn process_x402_micro_settlement(ctx: Context<SettleWorkerCTx>, task_id: [u8; 32], subtask_id: u64) -> Result<()> {
     let ctx_state = &mut ctx.accounts.ctx_state;
 
     require_keys_eq!(
@@ -47,12 +52,19 @@ pub fn process_x402_micro_settlement(ctx: Context<SettleWorkerCTx>, subtask_id: 
         LifePlusError::DoubleSpendingAttempt
     );
 
-    let agreed_bips = ctx_state
+    let agreed_reward = ctx_state
         .subtask_rewards
         .iter()
         .find(|reward| reward.subtask_id == subtask_id)
-        .ok_or(LifePlusError::SubtaskNotFound)?
-        .payment_bips;
+        .ok_or(LifePlusError::SubtaskNotFound)?;
+
+    let agreed_bips = agreed_reward.payment_bips;
+
+    require_keys_eq!(
+        ctx.accounts.worker_wallet.owner,
+        agreed_reward.worker,
+        LifePlusError::WorkerWalletMismatch
+    );
 
     let payout_amount_u128 = (ctx_state.total_bounty as u128)
         .checked_mul(agreed_bips as u128)
@@ -110,7 +122,7 @@ pub fn process_x402_micro_settlement(ctx: Context<SettleWorkerCTx>, subtask_id: 
     Ok(())
 }
 
-pub fn process_batch_settlement_safe(ctx: Context<SettleWorkerCTx>, batch_size: u32) -> Result<()> {
+pub fn process_batch_settlement_safe(ctx: Context<SettleWorkerCTx>, task_id: [u8; 32], batch_size: u32) -> Result<()> {
     let state = &mut ctx.accounts.ctx_state;
 
     require_keys_eq!(
@@ -142,6 +154,7 @@ pub fn process_batch_settlement_safe(ctx: Context<SettleWorkerCTx>, batch_size: 
     for i in start_idx..end_idx {
         let subtask_id = state.subtask_rewards[i].subtask_id;
         let payment_bips = state.subtask_rewards[i].payment_bips;
+        let subtask_worker = state.subtask_rewards[i].worker;
 
         require!(
             state.completed_subtasks.contains(&subtask_id),
@@ -151,6 +164,15 @@ pub fn process_batch_settlement_safe(ctx: Context<SettleWorkerCTx>, batch_size: 
             !state.settled_subtasks.contains(&subtask_id),
             LifePlusError::DoubleSpendingAttempt
         );
+
+        require_keys_eq!(
+            ctx.accounts.worker_wallet.owner,
+            subtask_worker,
+            LifePlusError::WorkerWalletMismatch
+        );
+        // NOTE: batch settlement processes subtasks belonging to the same worker only.
+        // If a subtask in the batch belongs to a different worker, WorkerWalletMismatch
+        // is returned and the entire batch is rejected.
 
         let payout_amount_u128 = (state.total_bounty as u128)
             .checked_mul(payment_bips as u128)
