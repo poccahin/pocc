@@ -134,6 +134,26 @@ ahin register --device-class mac-mini-m4 --stake-usdc 10
 
 ---
 
+## 🧪 Life++ 协议栈微缩实验
+
+为了让开发者在本地快速体验“语义引力塌缩”与“闪电状态握手”，仓库新增了两个开箱即用实验：
+
+### 1) Apple MLX 意图张量共识引擎 (`agent-sdk/mlx_consensus_engine.py`)
+
+```bash
+pip install mlx
+python agent-sdk/mlx_consensus_engine.py
+```
+
+### 2) x402 闪电状态握手引擎 (`ahin-node/src/x402_channel.rs`)
+
+```bash
+cd ahin-node
+cargo run
+```
+
+---
+
 ## 🔬 Open Problems (亟待解决的工程极限)
 
 我们正在寻找全球顶级工程师、密码学家与机器人专家，攻克以下领域的物理与数学极限：
