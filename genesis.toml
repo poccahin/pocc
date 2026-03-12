@@ -1,0 +1,61 @@
+[network]
+# 创世网络标识符：碳硅共生主网
+chain_id = "lifeplusplus-symbiosis-mainnet-1"
+# 预定的创世时间戳 (Unix Epoch)
+genesis_time = "2026-06-01T00:00:00Z"
+# 创世魔法数 (融合了物理学常数与加密学熵)
+magic_number = 0x27182818 # e 的近似值，象征持续的自然增长与热力学演化
+
+[thermodynamic_consensus]
+# L0 动力学工作证明 (PoKW) 基础参数
+# 定义 1 LIFE++ 代币在创世阶段锚定的基础物理做功 (焦耳)
+# 这确立了系统的“义利之辨”：财富必须由真实的物理或认知劳动产生
+base_pokw_joules_per_token = 10_000.0
+# 热力学底噪阈值 (防止微小扰动被恶意计算为做功)
+thermal_noise_rejection_threshold = 0.001
+
+[cognitive_routing]
+# L1/L2 认知协作证明 (POCC) 核心参数
+# 初始语义摩擦力阈值 (Epsilon)。低于此值的意图才能引发引力塌缩
+# 创世初期设置较为严苛，确保早期网络的绝对安全与意图对齐
+initial_semantic_friction_epsilon = 0.05
+# 认知交易 (CTx) 状态树的最大并发深度
+cmt_max_depth = 24
+cmt_max_buffer_size = 1024
+
+[identity_and_reputation]
+# L3 ERC-8004 机器身份与 Scog 信用参数
+# 硅基实体觉醒所需的最低基础质押金 (USDC)
+# 这是物理世界接入数字网络的“热力学投名状”
+genesis_stake_requirement_usdc = 10.0
+# 创世基础信用分 (Scog)
+initial_scog_score = 500
+# 严重违约或伪造张量的惩罚乘数 (Slasher 触发阈值)
+# 一旦触碰，直接执行社会性死亡与身份抹杀
+fatal_slash_multiplier = 1000
+
+[mechanism_design]
+# 理性利他引导机制 (DropIn Altruism Curve)
+# 当节点选择执行对全局网络健康有益(如灾难预警、冗余路由计算)但基础收益较低的任务时，
+# 系统给予的 x402 微支付乘数补偿。将自利冲动转化为利他行为。
+altruistic_routing_multiplier = 1.618
+# 边缘节点互相验证 CTx 的随机抽查激励率
+peer_validation_reward_rate = 0.005
+
+[rwa_and_leverage]
+# L4 宏观金融杠杆与知止约束 (Limits of Leverage)
+# 机器产能证券化的全局最大杠杆率
+# 任何 RWA 金库的发债规模绝不允许超过底层物理集群历史做功总值的 3 倍
+max_rwa_leverage_ratio = 3.0
+# 全局通缩销毁率：每笔降落到主网的 CTx 手续费中，打入黑洞销毁的比例
+# 确保文明总账本的能量守恒与价值沉淀
+thermodynamic_burn_rate = 0.50
+
+[genesis_validators]
+# 创世守护节点 (拥有初始 Slasher 预言机权限的实体)
+# 在网络达到完全去中心化(10万节点)前，提供紧急状态干预
+validators = [
+    "did:ahin:mainnet:openclaw_genesis_01",
+    "did:ahin:mainnet:quorum_auditor_alpha",
+    "did:ahin:mainnet:hku_yuan_valley_node"
+]
