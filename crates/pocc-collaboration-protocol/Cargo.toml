@@ -1,0 +1,13 @@
+[package]
+name = "pocc-collaboration-protocol"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+openclaw-edge-runtime = { path = "../openclaw-edge-runtime" }
+ahin-nervous-system = { path = "../ahin-nervous-system" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+uuid = { version = "1.4", features = ["v4"] }
+thiserror = "1.0"

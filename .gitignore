@@ -29,6 +29,7 @@ anchor-wallet.json
 # =====================================================================
 1_ahin_nervous_system/target/
 4_ap2_universal_gateway/target/
+/target/
 Cargo.lock  # 视乎是否需要锁定依赖，通常 library 不锁，binary 锁
 **/*.rs.bk
 

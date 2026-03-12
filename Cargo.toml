@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    "crates/openclaw-edge-runtime",
+    "crates/ahin-nervous-system",
+    "crates/pocc-collaboration-protocol",
+    "crates/silicon-economy-layer",
+    "crates/governance-and-rwa",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["poccahin"]
