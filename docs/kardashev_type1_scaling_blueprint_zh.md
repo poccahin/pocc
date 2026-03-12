@@ -51,7 +51,7 @@
 
 ### A2. Geo-Spatial 路由策略接入 CR+ 引力模型
 
-- 目标文件：`1_ahin_nervous_system/src/cr_plus_gravity.rs`
+- 目标文件：`1_ahin_nervous_system/src/geo_spatial_dht.rs`
 - 动作：
   - 在评分函数中加入地理延迟惩罚项 `w_lat * latency_ms`。
   - 让路由器优先选择 500m~50km 的局域算力井，跨洲路由仅作灾备。
