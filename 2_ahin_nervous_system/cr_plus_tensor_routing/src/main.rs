@@ -1,5 +1,6 @@
 mod caas_registry;
 mod eclipse_monitor;
+mod global_blacklist_gossip;
 mod gravity_engine;
 mod grpc_python;
 mod siwa;
@@ -12,6 +13,7 @@ use std::sync::Arc;
 use anyhow::Context;
 use caas_registry::{CaaSRegistry, McpServiceRegistration};
 use eclipse_monitor::{ActionClass, CrossDomainAnchor};
+use global_blacklist_gossip::QuarantineBarrier;
 use gravity_engine::{AgentNodeContext, GravityTensor};
 use serde::{Deserialize, Serialize};
 use siwa::{SiwaClaims, SiwaVerifier};
@@ -54,6 +56,7 @@ struct AppSecurity {
     siwa_verifier: SiwaVerifier,
     tee_envelope: TeeEnvelope,
     caas_registry: CaaSRegistry,
+    quarantine_barrier: QuarantineBarrier,
 }
 
 impl AppSecurity {
@@ -62,6 +65,7 @@ impl AppSecurity {
             siwa_verifier: SiwaVerifier::new(300),
             tee_envelope: TeeEnvelope::new("LIFEPP_EDGE_TEE_V1"),
             caas_registry: CaaSRegistry::new(),
+            quarantine_barrier: QuarantineBarrier::new(),
         }
     }
 }
@@ -130,6 +134,21 @@ async fn handle_connection(
     let intent: RoutingIntent =
         serde_json::from_slice(&buf[..n]).context("invalid intent payload")?;
 
+    if let Err(reason) = app_security
+        .quarantine_barrier
+        .pre_flight_check(&intent.agent_id)
+        .await
+    {
+        let response = RoutingDecision {
+            accepted: false,
+            message: reason,
+            selected_node: None,
+        };
+        let payload = serde_json::to_vec(&response)?;
+        socket.write_all(&payload).await?;
+        return Ok(());
+    }
+
     let now_unix = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("system clock before epoch")
@@ -197,6 +216,11 @@ async fn handle_connection(
         if let Err(e) = ledger.execute_slashing_burn(&intent.agent_id, 100_000_000) {
             eprintln!("⚠️ [SLASHING ERROR] {e}");
         }
+
+        app_security
+            .quarantine_barrier
+            .quarantine(&intent.agent_id)
+            .await;
 
         RoutingDecision {
             accepted: false,
