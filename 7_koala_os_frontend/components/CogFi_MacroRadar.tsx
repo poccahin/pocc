@@ -35,7 +35,7 @@ export default function CogFi_MacroRadar() {
   const [slashAlert, setSlashAlert] = useState<string | null>(null);
 
   useEffect(() => {
-    const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:9000';
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:9000';
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
