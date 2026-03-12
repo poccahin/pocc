@@ -1,7 +1,7 @@
 import React from 'react';
-import HoloGlobe from '../components/HoloGlobe';
+import HolographicMap from '../components/HolographicMap';
 
 export const holoGlobeRoute = {
   path: '/koala/holo-globe',
-  element: <HoloGlobe />,
+  element: <HolographicMap />,
 };
