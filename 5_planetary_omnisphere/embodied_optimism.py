@@ -11,8 +11,13 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Dict, Protocol
+
+# Maximum number of concurrent ZK-proof background workers.
+# Bounds resource usage and prevents a concurrency-bomb / OOM attack.
+_ZK_PROOF_MAX_WORKERS = 50
 
 logger = logging.getLogger("omnisphere.embodied_optimism")
 
@@ -55,6 +60,11 @@ class OptimisticKinematicChannel:
         self.ledger = solana_ledger
         self.optimistic_state_roots: Dict[int, OptimisticRecord] = {}
         self._state_lock = threading.Lock()
+        # Bounded thread pool prevents unbounded thread creation (concurrency-bomb DDoS).
+        self._zk_executor = ThreadPoolExecutor(
+            max_workers=_ZK_PROOF_MAX_WORKERS,
+            thread_name_prefix="zk-proof",
+        )
 
     def dispatch_physical_action(
         self, robot_id: str, intent_action: str, staked_life_plus: float
@@ -83,13 +93,7 @@ class OptimisticKinematicChannel:
                 stake=staked_life_plus,
             )
 
-        thread = threading.Thread(
-            target=self._async_zk_fraud_proof,
-            args=(action_hash, intent_action),
-            daemon=True,
-            name=f"zk-proof-{robot_id[:8]}",
-        )
-        thread.start()
+        self._zk_executor.submit(self._async_zk_fraud_proof, action_hash, intent_action)
 
         return "OPTIMISTICALLY_EXECUTED"
 
@@ -125,6 +129,22 @@ class OptimisticKinematicChannel:
     def _send_emergency_halt_to_ros2(self, robot_id: str) -> None:
         """Hook point for ROS2 emergency stop integration."""
         logger.warning("ROS2 emergency halt placeholder for %s", robot_id)
+
+    def shutdown(self, wait: bool = True) -> None:
+        """Gracefully stop the ZK-proof executor.
+
+        Call this when the channel is no longer needed to release background
+        threads cleanly.  ``wait=True`` (the default) blocks until all
+        in-flight proofs have finished.
+        """
+        self._zk_executor.shutdown(wait=wait)
+
+    def __del__(self) -> None:
+        """Best-effort cleanup when the object is garbage-collected."""
+        try:
+            self._zk_executor.shutdown(wait=False)
+        except Exception:  # pragma: no cover
+            pass
 
 
 if __name__ == "__main__":
