@@ -1,111 +1,42 @@
 const std = @import("std");
+const pokw = @import("pokw_generator.zig");
 
-/// 动力学采样点：包含微秒级时间戳、关节电流与空间加速度
-const KinematicSample = struct {
-    timestamp_us: i64,
-    joint_id: u8,
-    current_ma: i32, // 伺服电机电流 (毫安)
-    accel_z_mg: i32, // Z 轴加速度 (毫 G)
-};
-
-/// 核心数据结构：动力学工作证明 (PoKW)
-const PoKWPayload = struct {
-    intent_hash: [32]u8,
-    noise_seed: u64,
-    samples: []KinematicSample,
-    energy_joules_estimate: u32,
-};
-
-fn readServoCurrent(random: std.rand.Random, joint_id: u8) i32 {
-    _ = joint_id;
-    return 1500 + random.intRangeAtMost(i32, -100, 100);
-}
-
-fn readImuZAxis(random: std.rand.Random) i32 {
-    return 981 + random.intRangeAtMost(i32, -10, 10);
-}
-
-fn parseIntentHashHex(input: []const u8) ![32]u8 {
+fn parsePubkeyHex(input: []const u8) ![32]u8 {
     var out: [32]u8 = undefined;
-    if (input.len != 64) return error.InvalidIntentHashLength;
+    if (input.len != 64) return error.InvalidPubkeyLength;
     _ = try std.fmt.hexToBytes(&out, input);
     return out;
 }
 
-fn captureKinematicWaveform(
-    allocator: std.mem.Allocator,
-    duration_ms: u64,
-    noise_seed: u64,
-) ![]KinematicSample {
-    var waveform = std.ArrayList(KinematicSample).init(allocator);
-    errdefer waveform.deinit();
-
-    var prng = std.rand.DefaultPrng.init(noise_seed);
-    const random = prng.random();
-
-    const start_time = std.time.microTimestamp();
-    const end_time = start_time + @as(i64, @intCast(duration_ms * 1000));
-
-    // 受 noise_seed 控制的微秒级采样扰动
-    while (std.time.microTimestamp() < end_time) {
-        const jitter = random.intRangeAtMost(i32, -50, 50);
-        const base: i32 = 1000;
-        const sleep_us_i32 = if (base + jitter < 50) 50 else base + jitter;
-        const sleep_us = @as(u64, @intCast(sleep_us_i32));
-
-        std.time.sleep(sleep_us * std.time.ns_per_us);
-
-        try waveform.append(.{
-            .timestamp_us = std.time.microTimestamp(),
-            .joint_id = 1,
-            .current_ma = readServoCurrent(random, 1),
-            .accel_z_mg = readImuZAxis(random),
-        });
-    }
-
-    return waveform.toOwnedSlice();
-}
-
-fn estimateEnergyJoules(samples: []const KinematicSample) u32 {
-    var total: u32 = 0;
-    for (samples) |s| {
-        total += @as(u32, @intCast(@abs(s.current_ma))) * 24 / 1000;
-    }
-    return total;
+fn buildDemoDmaFrames() [4]pokw.SensorFrame {
+    return .{
+        .{ .timestamp_ns = 1_000_000_000, .torque_nm = 2.2, .angular_vel_rads = 3.1, .accel_x = 0.01, .accel_y = 0.02, .accel_z = 9.80, .thermal_noise = 1731 },
+        .{ .timestamp_ns = 1_001_000_000, .torque_nm = 2.4, .angular_vel_rads = 3.3, .accel_x = 0.03, .accel_y = 0.01, .accel_z = 9.79, .thermal_noise = 8472 },
+        .{ .timestamp_ns = 1_002_000_000, .torque_nm = 2.0, .angular_vel_rads = 3.0, .accel_x = 0.01, .accel_y = 0.00, .accel_z = 9.81, .thermal_noise = 421 },
+        .{ .timestamp_ns = 1_003_000_000, .torque_nm = 2.8, .angular_vel_rads = 3.5, .accel_x = 0.02, .accel_y = 0.01, .accel_z = 9.80, .thermal_noise = 9233 },
+    };
 }
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    var args = std.process.args();
+    _ = args.skip();
 
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
-
-    if (args.len < 3) {
-        std.debug.print("Usage: pokw_sensor <intent_hash_hex_64> <noise_seed>\n", .{});
+    const pubkey_hex = args.next() orelse {
+        std.debug.print("Usage: pokw_firmware <agent_pubkey_hex_64> <challenge_nonce>\n", .{});
         return;
-    }
-
-    const intent_hash = try parseIntentHashHex(args[1]);
-    const noise_seed = try std.fmt.parseInt(u64, args[2], 10);
-
-    std.debug.print("🤖 [L0 Kinematics] Noise seed injected: 0x{x}\n", .{noise_seed});
-
-    const samples = try captureKinematicWaveform(allocator, 500, noise_seed);
-    defer allocator.free(samples);
-
-    const energy = estimateEnergyJoules(samples);
-
-    const payload = PoKWPayload{
-        .intent_hash = intent_hash,
-        .noise_seed = noise_seed,
-        .samples = samples,
-        .energy_joules_estimate = energy,
     };
 
-    // 实际工程里建议用 CBOR/FlatBuffers; 这里用 JSON 便于 L1 直接解析。
-    var writer = std.io.getStdOut().writer();
-    try std.json.stringify(payload, .{}, writer);
-    try writer.writeAll("\n");
+    const nonce_str = args.next() orelse {
+        std.debug.print("Usage: pokw_firmware <agent_pubkey_hex_64> <challenge_nonce>\n", .{});
+        return;
+    };
+
+    const agent_pubkey = try parsePubkeyHex(pubkey_hex);
+    const challenge_nonce = try std.fmt.parseInt(u64, nonce_str, 10);
+    var dma_frames = buildDemoDmaFrames();
+
+    const proof = pokw.generate_pokw_hash(agent_pubkey, challenge_nonce, &dma_frames);
+
+    try std.json.stringify(proof, .{}, std.io.getStdOut().writer());
+    try std.io.getStdOut().writer().writeByte('\n');
 }
