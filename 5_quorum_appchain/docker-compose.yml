@@ -1,0 +1,121 @@
+version: '3.8'
+
+x-quorum-def: &quorum-def
+  image: quorumengineering/quorum:23.4.0
+  restart: "on-failure"
+  expose:
+    - "8545" # RPC
+    - "8546" # WS
+    - "30303" # P2P
+  networks:
+    - lifeplus-mesh
+
+x-tessera-def: &tessera-def
+  image: quorumengineering/tessera:23.4.0
+  restart: "on-failure"
+  expose:
+    - "9000" # Tessera P2P
+    - "9080" # Tessera ThirdParty/Q2T
+  networks:
+    - lifeplus-mesh
+
+services:
+  # =====================================================================
+  # 节点 1：创世节点 (The Alpha)
+  # =====================================================================
+  tessera-node1:
+    <<: *tessera-def
+    container_name: tessera-node1
+    environment:
+      - TESSERA_CONFIG_FILE=/config/tessera-config-1.json
+    volumes:
+      - ./config/tessera:/config
+
+  quorum-node1:
+    <<: *quorum-def
+    container_name: quorum-node1
+    command: >
+      geth --datadir /data
+      --nodiscover --verbosity 3
+      --syncmode full --mine --miner.threads 1
+      --networkid 666
+      --http --http.addr 0.0.0.0 --http.port 8545 --http.corsdomain "*" --http.vhosts "*" --http.api admin,eth,debug,miner,net,txpool,personal,web3,istanbul
+      --ws --ws.addr 0.0.0.0 --ws.port 8546 --ws.origins "*" --ws.api admin,eth,debug,miner,net,txpool,personal,web3,istanbul
+      --emitcheckpoints
+      --ptm.url "http://tessera-node1:9080"
+    environment:
+      - PRIVATE_CONFIG=/config/tessera-config-1.json
+    volumes:
+      - ./config/quorum/node1:/data
+      - ./config/tessera:/config
+    ports:
+      - "8545:8545"
+      - "8546:8546"
+    depends_on:
+      - tessera-node1
+
+  # =====================================================================
+  # 节点 2：量化机构节点 (The Quant)
+  # =====================================================================
+  tessera-node2:
+    <<: *tessera-def
+    container_name: tessera-node2
+    environment:
+      - TESSERA_CONFIG_FILE=/config/tessera-config-2.json
+    volumes:
+      - ./config/tessera:/config
+
+  quorum-node2:
+    <<: *quorum-def
+    container_name: quorum-node2
+    command: >
+      geth --datadir /data
+      --nodiscover --verbosity 3
+      --syncmode full --mine --miner.threads 1
+      --networkid 666
+      --http --http.addr 0.0.0.0 --http.port 8547 --http.api admin,eth,debug,miner,net,txpool,personal,web3,istanbul
+      --ptm.url "http://tessera-node2:9080"
+    environment:
+      - PRIVATE_CONFIG=/config/tessera-config-2.json
+    volumes:
+      - ./config/quorum/node2:/data
+      - ./config/tessera:/config
+    ports:
+      - "8547:8547"
+    depends_on:
+      - tessera-node2
+
+  # =====================================================================
+  # 节点 3：全球审计节点 (The Auditor)
+  # =====================================================================
+  tessera-node3:
+    <<: *tessera-def
+    container_name: tessera-node3
+    environment:
+      - TESSERA_CONFIG_FILE=/config/tessera-config-3.json
+    volumes:
+      - ./config/tessera:/config
+
+  quorum-node3:
+    <<: *quorum-def
+    container_name: quorum-node3
+    command: >
+      geth --datadir /data
+      --nodiscover --verbosity 3
+      --syncmode full --mine --miner.threads 1
+      --networkid 666
+      --http --http.addr 0.0.0.0 --http.port 8548 --http.api admin,eth,debug,miner,net,txpool,personal,web3,istanbul
+      --ptm.url "http://tessera-node3:9080"
+    environment:
+      - PRIVATE_CONFIG=/config/tessera-config-3.json
+    volumes:
+      - ./config/quorum/node3:/data
+      - ./config/tessera:/config
+    ports:
+      - "8548:8548"
+    depends_on:
+      - tessera-node3
+
+networks:
+  lifeplus-mesh:
+    driver: bridge
