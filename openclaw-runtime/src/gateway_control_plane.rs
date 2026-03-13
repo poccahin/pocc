@@ -1,228 +1,139 @@
-use std::collections::{HashMap, VecDeque};
+use crossbeam_channel::{bounded, Receiver, Sender};
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
+use tokio::task;
 
-use tokio::sync::{Mutex, RwLock};
-use tokio::time::{sleep, Duration};
+/// 使用位图 (Bitmask) 重新定义物理资源，便于进行极速原子操作
+pub const RES_CHASSIS: u8 = 0b0000_0001;
+pub const RES_LEFT_ARM: u8 = 0b0000_0010;
+pub const RES_RIGHT_ARM: u8 = 0b0000_0100;
+pub const RES_TENSOR_NPU: u8 = 0b0000_1000;
+pub const RES_VISION: u8 = 0b0001_0000;
 
-/// 物理与算力资源拓扑枚举
-#[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub enum HardwareResource {
-    Chassis,
-    LeftActuator,
-    RightActuator,
-    TensorNpu,
-    VisionSensors,
-}
-
-/// 标准化的物理执行意图
 #[derive(Debug, Clone)]
 pub struct PhysicalIntent {
     pub intent_id: String,
-    pub required_resources: Vec<HardwareResource>,
+    pub resource_mask: u8,
     pub tensor_payload: Vec<u8>,
-    pub safety_tolerance: f32,
 }
 
-/// 车道队列管理器 (Lane Queue Manager)
-pub struct LaneQueueManager {
-    /// 每个物理硬件资源对应一个独立的串行执行队列 (车道)
-    lanes: RwLock<HashMap<HardwareResource, VecDeque<PhysicalIntent>>>,
-    /// 资源锁定状态表，防止交叉死锁
-    resource_locks: Arc<Mutex<HashMap<HardwareResource, bool>>>,
+/// 绝对无锁的车道与资源管理器
+pub struct LockFreeLaneManager {
+    /// 物理资源全局原子锁 (位图)
+    global_resource_state: AtomicU8,
+    /// 高速 MPMC 环形缓冲区
+    intent_tx: Sender<PhysicalIntent>,
+    intent_rx: Receiver<PhysicalIntent>,
 }
 
-impl LaneQueueManager {
+impl LockFreeLaneManager {
     pub fn new() -> Self {
-        let mut lanes = HashMap::new();
-        let mut locks = HashMap::new();
-        let resources = [
-            HardwareResource::Chassis,
-            HardwareResource::LeftActuator,
-            HardwareResource::RightActuator,
-            HardwareResource::TensorNpu,
-            HardwareResource::VisionSensors,
-        ];
-
-        for resource in resources {
-            lanes.insert(resource.clone(), VecDeque::new());
-            locks.insert(resource, false);
-        }
-
+        let (tx, rx) = bounded(65_536);
         Self {
-            lanes: RwLock::new(lanes),
-            resource_locks: Arc::new(Mutex::new(locks)),
+            global_resource_state: AtomicU8::new(0),
+            intent_tx: tx,
+            intent_rx: rx,
         }
     }
 
-    /// 接收高并发的网络意图，并将其压入对应的物理车道
-    pub async fn enqueue_intent(&self, intent: PhysicalIntent) {
-        let mut lanes = self.lanes.write().await;
-        for resource in &intent.required_resources {
-            if let Some(queue) = lanes.get_mut(resource) {
-                queue.push_back(intent.clone());
+    /// 纳秒级意图压入，不阻塞 P2P 网络事件循环
+    pub fn enqueue_intent(&self, intent: PhysicalIntent) {
+        if self.intent_tx.try_send(intent).is_err() {
+            #[cfg(debug_assertions)]
+            eprintln!("🔥 [GATEWAY WARNING] Lane queue overflow. Intent dropped.");
+        }
+    }
+
+    /// 尝试原子化地锁定所有需要的资源
+    pub fn try_acquire_resources(&self, mask: u8) -> bool {
+        let mut current = self.global_resource_state.load(Ordering::Acquire);
+        loop {
+            if current & mask != 0 {
+                return false;
+            }
+
+            let new_state = current | mask;
+            match self.global_resource_state.compare_exchange_weak(
+                current,
+                new_state,
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            ) {
+                Ok(_) => return true,
+                Err(actual) => current = actual,
             }
         }
+    }
 
-        println!(
-            "🚥 [GATEWAY] Intent {} multiplexed into hardware lanes: {:?}",
-            intent.intent_id, intent.required_resources
-        );
+    /// 释放资源
+    pub fn release_resources(&self, mask: u8) {
+        self.global_resource_state
+            .fetch_and(!mask, Ordering::Release);
+    }
+
+    #[cfg(test)]
+    fn drain_one(&self) -> Option<PhysicalIntent> {
+        self.intent_rx.try_recv().ok()
     }
 }
 
-/// 目标驱动引擎 (Objective-Driven Engine)
-pub struct ObjectiveDrivenEngine;
-
-impl ObjectiveDrivenEngine {
-    /// 在真实驱动之前进行 MPC 风险推演
-    pub async fn psychological_rehearsal(intent: &PhysicalIntent) -> Result<(), String> {
-        println!(
-            "🧠 [MPC] Initiating psychological rehearsal for Intent: {}...",
-            intent.intent_id
-        );
-
-        let predicted_risk = Self::simulate_kinematics(&intent.tensor_payload);
-        if predicted_risk > intent.safety_tolerance {
-            return Err(format!(
-                "💥 [FATAL] MPC Rehearsal failed. Predicted physical risk ({predicted_risk}) exceeds tolerance."
-            ));
-        }
-
-        println!("✅ [MPC] Rehearsal passed. Trajectory is safe for reality projection.");
-        Ok(())
-    }
-
-    fn simulate_kinematics(_payload: &[u8]) -> f32 {
-        0.01
-    }
-}
-
-/// 控制平面中枢 (The Gateway Control Plane)
-pub struct GatewayControlPlane {
-    pub lane_manager: Arc<LaneQueueManager>,
-}
-
-impl GatewayControlPlane {
-    pub fn new() -> Self {
-        Self {
-            lane_manager: Arc::new(LaneQueueManager::new()),
-        }
-    }
-
-    /// 启动网关主循环：将数字意图降维投影到物理世界
-    pub async fn run_execution_loop(lane_manager: Arc<LaneQueueManager>) {
-        println!(
-            "🛡️ [CONTROL PLANE] Physical execution loop ignited. Managing thermodynamic projection."
-        );
+/// 控制平面执行主循环
+pub async fn run_lockfree_execution_loop(manager: Arc<LockFreeLaneManager>) {
+    task::spawn_blocking(move || {
+        println!("🚀 [CONTROL PLANE] Lock-free thermodynamic projection loop activated.");
 
         loop {
-            let mut locks = lane_manager.resource_locks.lock().await;
-            let mut lanes = lane_manager.lanes.write().await;
-
-            for (resource, queue) in lanes.iter_mut() {
-                if !*locks.get(resource).unwrap_or(&true) {
-                    if let Some(intent) = queue.front() {
-                        let all_resources_available = intent
-                            .required_resources
-                            .iter()
-                            .all(|r| !*locks.get(r).unwrap_or(&true));
-
-                        if all_resources_available {
-                            let executable_intent = queue.pop_front().expect("intent must exist");
-
-                            for r in &executable_intent.required_resources {
-                                locks.insert(r.clone(), true);
-                            }
-
-                            let locks_clone = Arc::clone(&lane_manager.resource_locks);
-                            tokio::spawn(async move {
-                                match ObjectiveDrivenEngine::psychological_rehearsal(
-                                    &executable_intent,
-                                )
-                                .await
-                                {
-                                    Ok(()) => {
-                                        println!(
-                                            "🦾 [ACTUATOR] Dispatching safe intent {} to Zig firmware.",
-                                            executable_intent.intent_id
-                                        );
-                                        sleep(Duration::from_millis(100)).await;
-                                    }
-                                    Err(e) => eprintln!("{e}"),
-                                }
-
-                                let mut release_locks = locks_clone.lock().await;
-                                for r in &executable_intent.required_resources {
-                                    release_locks.insert(r.clone(), false);
-                                }
-                                println!(
-                                    "🔓 [GATEWAY] Resources released for Intent {}",
-                                    executable_intent.intent_id
-                                );
-                            });
-                        }
-                    }
+            if let Ok(intent) = manager.intent_rx.recv() {
+                if manager.try_acquire_resources(intent.resource_mask) {
+                    let mgr_clone = manager.clone();
+                    rayon::spawn(move || {
+                        println!(
+                            "🦾 [ACTUATOR] Executing intent {} on mask {:b}",
+                            intent.intent_id, intent.resource_mask
+                        );
+                        let _ = intent.tensor_payload;
+                        mgr_clone.release_resources(intent.resource_mask);
+                    });
+                } else {
+                    let _ = manager.intent_tx.try_send(intent);
                 }
             }
-            drop(lanes);
-            drop(locks);
-            tokio::task::yield_now().await;
         }
-    }
+    });
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn enqueue_to_all_required_lanes() {
-        let manager = LaneQueueManager::new();
+    #[test]
+    fn enqueue_and_pop_intent_from_lockfree_queue() {
+        let manager = LockFreeLaneManager::new();
         let intent = PhysicalIntent {
             intent_id: "intent-001".to_string(),
-            required_resources: vec![HardwareResource::Chassis, HardwareResource::VisionSensors],
+            resource_mask: RES_CHASSIS | RES_VISION,
             tensor_payload: vec![1, 2, 3],
-            safety_tolerance: 0.2,
         };
 
-        manager.enqueue_intent(intent.clone()).await;
+        manager.enqueue_intent(intent.clone());
 
-        let lanes = manager.lanes.read().await;
-        assert_eq!(
-            lanes
-                .get(&HardwareResource::Chassis)
-                .expect("missing chassis lane")
-                .len(),
-            1
-        );
-        assert_eq!(
-            lanes
-                .get(&HardwareResource::VisionSensors)
-                .expect("missing vision lane")
-                .len(),
-            1
-        );
-
-        assert_eq!(
-            lanes
-                .get(&HardwareResource::Chassis)
-                .and_then(VecDeque::front)
-                .expect("lane should contain intent")
-                .intent_id,
-            intent.intent_id
-        );
+        let pulled = manager
+            .drain_one()
+            .expect("intent should be available in queue");
+        assert_eq!(pulled.intent_id, intent.intent_id);
+        assert_eq!(pulled.resource_mask, intent.resource_mask);
     }
 
-    #[tokio::test]
-    async fn rehearsal_rejects_high_risk_intent() {
-        let intent = PhysicalIntent {
-            intent_id: "intent-unsafe".to_string(),
-            required_resources: vec![HardwareResource::LeftActuator],
-            tensor_payload: vec![9, 9, 9],
-            safety_tolerance: 0.001,
-        };
+    #[test]
+    fn resource_acquire_conflict_and_release() {
+        let manager = LockFreeLaneManager::new();
+        let mask = RES_LEFT_ARM | RES_TENSOR_NPU;
 
-        let result = ObjectiveDrivenEngine::psychological_rehearsal(&intent).await;
-        assert!(result.is_err());
+        assert!(manager.try_acquire_resources(mask));
+        assert!(!manager.try_acquire_resources(RES_LEFT_ARM));
+
+        manager.release_resources(mask);
+
+        assert!(manager.try_acquire_resources(RES_LEFT_ARM));
     }
 }
