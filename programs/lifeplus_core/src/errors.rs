@@ -41,4 +41,10 @@ pub enum LifePlusError {
     WorkerWalletMismatch,
     #[msg("Orchestrator authority does not match the orchestrator recorded for this interaction.")]
     OrchestratorMismatch,
+    #[msg("Data Availability Blob ID cannot be empty. Must provide Arweave/Celestia pointer.")]
+    MissingDataAvailabilityBlob,
+    #[msg("This netting epoch has already been finalized.")]
+    EpochAlreadyFinalized,
+    #[msg("The challenge window for this epoch has expired.")]
+    ChallengeWindowExpired,
 }

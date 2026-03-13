@@ -2,11 +2,14 @@
 //! Coordinates ERC-8004 identity checks, PoCC tensor safety, L0 execution,
 //! and x402/Solana settlement into one async CTx lifecycle.
 
+use crate::solana_rpc_pool::RpcFailoverPool;
+use lru::LruCache;
 use serde_json::json;
-use std::collections::{HashMap, HashSet};
+use solana_sdk::{signature::Signature, transaction::Transaction};
+use std::num::NonZeroUsize;
 use std::sync::Arc;
 use thiserror::Error;
-use tokio::sync::{broadcast, mpsc, RwLock};
+use tokio::sync::{broadcast, mpsc, Mutex};
 use tokio::time::{timeout, Duration};
 
 #[derive(Debug, Clone)]
@@ -35,8 +38,9 @@ pub struct CTxWorkflowEngine {
     tensor_firewall: Arc<dyn PoCCTensorClient>,
     hardware_layer: Arc<dyn L0KineticFirmware>,
     settlement_layer: Arc<dyn AgentBankClient>,
-    reputation_cache: RwLock<HashMap<String, u64>>,
-    slashed_blacklist: RwLock<HashSet<String>>,
+    reputation_cache: Mutex<LruCache<String, u64>>,
+    slashed_blacklist: Mutex<LruCache<String, ()>>,
+    rpc_pool: Arc<RpcFailoverPool>,
     pub ws_sender: broadcast::Sender<String>,
 }
 
@@ -51,33 +55,39 @@ impl CTxWorkflowEngine {
         tensor_firewall: Arc<dyn PoCCTensorClient>,
         hardware_layer: Arc<dyn L0KineticFirmware>,
         settlement_layer: Arc<dyn AgentBankClient>,
-        ws_sender: broadcast::Sender<String>,
+        rpc_pool: Arc<RpcFailoverPool>,
     ) -> Self {
+        let (ws_sender, _) = broadcast::channel(10_000);
         Self {
             eth_identity,
             tensor_firewall,
             hardware_layer,
             settlement_layer,
-            reputation_cache: RwLock::new(HashMap::new()),
-            slashed_blacklist: RwLock::new(HashSet::new()),
+            reputation_cache: Mutex::new(LruCache::new(
+                NonZeroUsize::new(1_000_000).expect("non-zero cache capacity"),
+            )),
+            slashed_blacklist: Mutex::new(LruCache::new(
+                NonZeroUsize::new(1_000_000).expect("non-zero blacklist capacity"),
+            )),
+            rpc_pool,
             ws_sender,
         }
     }
 
     pub async fn verify_scog_score(&self, agent_did: &str) -> Result<u64, WorkflowError> {
-        if self.slashed_blacklist.read().await.contains(agent_did) {
+        if self.slashed_blacklist.lock().await.contains(agent_did) {
             return Err(WorkflowError::AgentAlreadyDead);
         }
 
-        if let Some(cached_score) = self.reputation_cache.read().await.get(agent_did).copied() {
+        if let Some(cached_score) = self.reputation_cache.lock().await.get(agent_did).copied() {
             return Ok(cached_score);
         }
 
         let score = self.eth_identity.get_scog_score(agent_did).await?;
         self.reputation_cache
-            .write()
+            .lock()
             .await
-            .insert(agent_did.to_string(), score);
+            .put(agent_did.to_string(), score);
         Ok(score)
     }
 
@@ -88,13 +98,10 @@ impl CTxWorkflowEngine {
                 event.rogue_agent
             );
             self.slashed_blacklist
-                .write()
+                .lock()
                 .await
-                .insert(event.rogue_agent.clone());
-            self.reputation_cache
-                .write()
-                .await
-                .remove(&event.rogue_agent);
+                .put(event.rogue_agent.clone(), ());
+            self.reputation_cache.lock().await.pop(&event.rogue_agent);
         }
     }
 
@@ -130,10 +137,10 @@ impl CTxWorkflowEngine {
                 .await;
 
             self.slashed_blacklist
-                .write()
+                .lock()
                 .await
-                .insert(worker_did.to_string());
-            self.reputation_cache.write().await.remove(worker_did);
+                .put(worker_did.to_string(), ());
+            self.reputation_cache.lock().await.pop(worker_did);
 
             let slash_msg = json!({
                 "type": "SLASH_ALERT",
@@ -187,6 +194,21 @@ impl CTxWorkflowEngine {
             "description": "Merkle Root Anchored to Solana Mainnet"
         });
         let _ = self.ws_sender.send(anchor_msg.to_string());
+    }
+
+    /// Submit Daily Netting merkle-root transaction via RPC failover pool.
+    pub async fn submit_daily_netting(
+        &self,
+        netting_transaction: &Transaction,
+    ) -> Result<Signature, WorkflowError> {
+        self.rpc_pool
+            .execute_with_failover(|client| async move {
+                client
+                    .send_and_confirm_transaction(netting_transaction)
+                    .await
+            })
+            .await
+            .map_err(WorkflowError::SettlementLayer)
     }
 }
 
@@ -251,7 +273,6 @@ pub enum WorkflowError {
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicBool, Ordering};
-    use tokio::sync::broadcast;
 
     struct MockIdentity;
     struct MockTensor;
@@ -326,7 +347,7 @@ mod tests {
             Arc::new(MockTensor),
             Arc::new(MockHardware),
             bank.clone(),
-            broadcast::channel(32).0,
+            RpcFailoverPool::new(vec!["https://rpc-1.test"]),
         );
 
         let receipt = engine
@@ -359,7 +380,7 @@ mod tests {
             Arc::new(MockTensor),
             Arc::new(MockHardware),
             bank,
-            broadcast::channel(32).0,
+            RpcFailoverPool::new(vec!["https://rpc-1.test"]),
         ));
 
         let first_score = engine
