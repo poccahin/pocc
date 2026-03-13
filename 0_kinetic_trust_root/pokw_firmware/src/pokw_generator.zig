@@ -42,6 +42,7 @@ pub fn generate_pokw_hash(
                     break :blk @as(f32, @floatFromInt(dt_ns)) / @as(f32, std.time.ns_per_s);
                 }
             }
+            // Default 1 ms fallback for the first frame or when timestamps are non-monotonic
             break :blk 0.001;
         };
         prev_ts = frame.timestamp_ns;

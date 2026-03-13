@@ -85,7 +85,7 @@ pub fn finalize_netting_epoch(ctx: Context<FinalizeNettingEpoch>) -> Result<()> 
 
     require!(
         current_time >= challenge_window_end,
-        LifePlusError::ChallengeWindowExpired
+        LifePlusError::ChallengeWindowStillActive
     );
 
     epoch.is_finalized = true;

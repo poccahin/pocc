@@ -25,15 +25,14 @@ impl RpcFailoverPool {
 
     /// 获取当前激活的 RPC 客户端
     fn get_current_client(&self) -> RpcClient {
-        // 使用 Relaxed 内存序，保证高并发下的极致性能
-        let index = self.current_index.load(Ordering::Relaxed) % self.endpoints.len();
+        let index = self.current_index.load(Ordering::Acquire) % self.endpoints.len();
         let url = &self.endpoints[index];
         RpcClient::new_with_commitment(url.to_string(), CommitmentConfig::confirmed())
     }
 
     /// 轮询切换到下一个备用节点
     fn rotate_endpoint(&self) {
-        let old_index = self.current_index.fetch_add(1, Ordering::Relaxed);
+        let old_index = self.current_index.fetch_add(1, Ordering::Release);
         let new_index = (old_index + 1) % self.endpoints.len();
         println!(
             "⚠️ [RPC Monitor] HTTP 429/503 Detected. Rotating endpoint to: {}",

@@ -47,4 +47,6 @@ pub enum LifePlusError {
     EpochAlreadyFinalized,
     #[msg("The challenge window for this epoch has expired.")]
     ChallengeWindowExpired,
+    #[msg("The challenge window for this epoch is still active. Cannot finalize yet.")]
+    ChallengeWindowStillActive,
 }
