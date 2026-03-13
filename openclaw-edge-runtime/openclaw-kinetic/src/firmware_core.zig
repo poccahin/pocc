@@ -1,5 +1,5 @@
 const std = @import("std");
-const Sha256 = std.crypto.hash.sha2.Sha256;
+const Sha3_512 = std.crypto.hash.sha3.Sha3_512;
 
 // =====================================================================
 // 📦 硬件寄存器与 DMA 内存布局 (Hardware & DMA Layout)
@@ -23,7 +23,7 @@ var dma_head_index: usize = 0; // DMA 硬件自动更新的头指针
 pub const ExecutionReceipt = extern struct {
     status_code: i32,
     total_joules: f32,
-    pokw_hash: [32]u8,
+    pokw_hash_512: [64]u8,
 };
 
 // =====================================================================
@@ -81,7 +81,7 @@ pub export fn execute_physical_intent_c(
     }
 
     // 2) 提取物理世界真值：计算 PoKW（动力学工作证明）。
-    var hasher = Sha256.init(.{});
+    var hasher = Sha3_512.init(.{});
     var total_work_joules: f32 = 0.0;
 
     hasher.update(std.mem.asBytes(&challenge_nonce));
@@ -109,7 +109,7 @@ pub export fn execute_physical_intent_c(
     // 3) 构建并返回执行回执。
     out_receipt.status_code = 0;
     out_receipt.total_joules = total_work_joules;
-    hasher.final(&out_receipt.pokw_hash);
+    hasher.final(&out_receipt.pokw_hash_512);
 
     return 0;
 }
