@@ -1,4 +1,5 @@
-use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use pqcrypto_falcon::falcon1024::{verify_detached, DetachedSignature, PublicKey};
+use pqcrypto_traits::sign::{DetachedSignature as _, PublicKey as _};
 use std::time::Instant;
 
 /// x402 状态通道的生命周期状态机。
@@ -13,7 +14,7 @@ pub enum ChannelState {
 pub struct X402Channel {
     pub intent_id: String,
     pub state: ChannelState,
-    pub worker_pubkey: Option<VerifyingKey>,
+    pub worker_pqc_pubkey: Option<PublicKey>,
 }
 
 impl X402Channel {
@@ -21,45 +22,42 @@ impl X402Channel {
         Self {
             intent_id: intent_id.to_string(),
             state: ChannelState::Pending,
-            worker_pubkey: None,
+            worker_pqc_pubkey: None,
         }
     }
 
-    /// Orchestrator 接收并验证边缘节点的 ACK 握手。
-    pub fn process_ack(&mut self, pubkey_hex: &str, sig_hex: &str) -> Result<(), String> {
+    /// Orchestrator 接收并验证边缘节点的抗量子 ACK 握手。
+    pub fn process_pqc_ack(&mut self, pubkey_hex: &str, sig_hex: &str) -> Result<(), String> {
         let start_time = Instant::now();
 
-        // 1. 解析密码学原语
-        let pubkey_bytes = hex::decode(pubkey_hex).map_err(|_| "Invalid Hex for Pubkey")?;
-        let sig_bytes = hex::decode(sig_hex).map_err(|_| "Invalid Hex for Signature")?;
+        // 1. 解析基于格密码学的公钥与签名
+        let pubkey_bytes = hex::decode(pubkey_hex).map_err(|_| "Invalid Hex for PQC Pubkey")?;
+        let sig_bytes = hex::decode(sig_hex).map_err(|_| "Invalid Hex for PQC Signature")?;
 
-        let verifying_key = VerifyingKey::try_from(pubkey_bytes.as_slice())
-            .map_err(|_| "Failed to parse Ed25519 Public Key")?;
-        let signature = Signature::from_slice(&sig_bytes)
-            .map_err(|_| "Failed to parse Signature")?;
+        let public_key = PublicKey::from_bytes(&pubkey_bytes)
+            .map_err(|_| "Failed to parse Falcon-1024 Public Key")?;
+        let signature = DetachedSignature::from_bytes(&sig_bytes)
+            .map_err(|_| "Failed to parse Falcon-1024 Signature")?;
 
         // 2. 重构握手消息载荷 (防重放验证)
         let expected_payload = format!("ACK_INTENT_{}", self.intent_id);
 
-        // 3. O(1) 极速验证数学签名
-        if verifying_key
-            .verify(expected_payload.as_bytes(), &signature)
-            .is_err()
-        {
+        // 3. 验证抗量子签名
+        if verify_detached(&signature, expected_payload.as_bytes(), &public_key).is_err() {
             self.state = ChannelState::Slashed;
             return Err(
-                "💀 [x402 FATAL] Cryptographic Heresy. Signature invalid. Slashing initiated."
+                "💀 [x402 FATAL] Quantum-Resistant Cryptographic Heresy. Slashing initiated."
                     .to_string(),
             );
         }
 
         // 4. 握手成功，状态通道开启
-        self.worker_pubkey = Some(verifying_key);
+        self.worker_pqc_pubkey = Some(public_key);
         self.state = ChannelState::Open;
 
         let elapsed = start_time.elapsed().as_micros();
         println!(
-            "✅ [x402 OPEN] Signature verified in {} µs. Channel state: {:?}",
+            "✅ [x402 PQC OPEN] Lattice signature verified in {} µs. Channel state: {:?}",
             elapsed, self.state
         );
         Ok(())

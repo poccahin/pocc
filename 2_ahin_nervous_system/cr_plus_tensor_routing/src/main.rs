@@ -5,6 +5,7 @@ mod gravity_engine;
 mod grpc_python;
 mod siwa;
 mod solana_ledger;
+mod solana_rpc_pool;
 mod tee_enclave;
 mod universal_orchestrator;
 
