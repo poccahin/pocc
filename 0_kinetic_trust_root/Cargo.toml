@@ -6,9 +6,16 @@ edition = "2021"
 [lib]
 path = "src/lib.rs"
 
+[workspace]
+
 [dependencies]
+axum = "0.7"
 futures = "0.3"
+hex = "0.4.3"
 libp2p = { version = "0.56", features = ["tokio", "tcp", "noise", "yamux"] }
 libp2p-stream = "0.4.0-alpha"
+pqcrypto-falcon = "0.3.0"
+pqcrypto-traits = "0.3.5"
+sha2 = "0.10"
 tokio = { version = "1", features = ["full", "sync"] }
 tokio-util = { version = "0.7", features = ["compat"] }

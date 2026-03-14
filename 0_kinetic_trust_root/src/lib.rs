@@ -6,4 +6,5 @@
 /// - Inbound P2P tunnel handling with concurrency limits (`tunnel_daemon`)
 /// - Inbound HTTP intent firewall (`aegis_interceptor`)
 
+pub mod aegis_interceptor;
 pub mod tunnel_daemon;

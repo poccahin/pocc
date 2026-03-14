@@ -3,6 +3,8 @@ name = "ahin-node"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+
 [dependencies]
 hex = "0.4.3"
 pqcrypto-falcon = "0.3.0"

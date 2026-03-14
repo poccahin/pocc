@@ -1,4 +1,5 @@
-use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use pqcrypto_falcon::falcon1024::{verify_detached_signature, DetachedSignature, PublicKey};
+use pqcrypto_traits::sign::{DetachedSignature as _, PublicKey as _};
 use risc0_zkvm::guest::env;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -6,10 +7,10 @@ use sha2::{Digest, Sha256};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct X402FinalState {
     pub channel_id: String,
-    pub orchestrator_pubkey: [u8; 32],
+    pub orchestrator_pubkey: Vec<u8>,      // Falcon-1024 public key (1793 bytes)
     pub final_nonce: u64,
     pub settled_balance: f64,
-    pub cryptographic_signature: [u8; 64],
+    pub cryptographic_signature: Vec<u8>,  // Falcon-1024 detached signature
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -31,11 +32,11 @@ fn main() {
         hasher.update(tx.settled_balance.to_be_bytes());
         let state_hash: [u8; 32] = hasher.finalize().into();
 
-        let pubkey = VerifyingKey::from_bytes(&tx.orchestrator_pubkey)
-            .expect("Fatal: invalid orchestrator public key");
-        let sig = Signature::from_bytes(&tx.cryptographic_signature);
-        pubkey
-            .verify(&state_hash, &sig)
+        let pubkey = PublicKey::from_bytes(&tx.orchestrator_pubkey)
+            .expect("Fatal: invalid Falcon-1024 orchestrator public key");
+        let sig = DetachedSignature::from_bytes(&tx.cryptographic_signature)
+            .expect("Fatal: invalid Falcon-1024 signature");
+        verify_detached_signature(&sig, &state_hash, &pubkey)
             .expect("Fatal: cryptographic signature mismatch in channel");
 
         total_lifeplus_settled += tx.settled_balance;

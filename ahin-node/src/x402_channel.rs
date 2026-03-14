@@ -1,4 +1,4 @@
-use pqcrypto_falcon::falcon1024::{verify_detached, DetachedSignature, PublicKey};
+use pqcrypto_falcon::falcon1024::{verify_detached_signature, DetachedSignature, PublicKey};
 use pqcrypto_traits::sign::{DetachedSignature as _, PublicKey as _};
 use std::time::Instant;
 
@@ -43,7 +43,7 @@ impl X402Channel {
         let expected_payload = format!("ACK_INTENT_{}", self.intent_id);
 
         // 3. 验证抗量子签名
-        if verify_detached(&signature, expected_payload.as_bytes(), &public_key).is_err() {
+        if verify_detached_signature(&signature, expected_payload.as_bytes(), &public_key).is_err() {
             self.state = ChannelState::Slashed;
             return Err(
                 "💀 [x402 FATAL] Quantum-Resistant Cryptographic Heresy. Slashing initiated."

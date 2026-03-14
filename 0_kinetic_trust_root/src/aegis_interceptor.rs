@@ -5,12 +5,13 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use ed25519_dalek::{Signature, VerifyingKey};
+use pqcrypto_falcon::falcon1024::{verify_detached_signature, DetachedSignature, PublicKey};
+use pqcrypto_traits::sign::{DetachedSignature as _, PublicKey as _};
 use sha2::{Digest, Sha256};
 
-/// 预置 Owner 公钥（32-byte Ed25519）。
+/// 预置 Owner 公钥（1793-byte Falcon-1024，抗量子格密码学公钥）。
 /// 正式环境应在 bootstrap 期间以安全方式注入，而不是硬编码。
-const AUTHORIZED_OWNER_PUBKEY: [u8; 32] = [0u8; 32];
+const AUTHORIZED_OWNER_PUBKEY: [u8; 1793] = [0u8; 1793];
 
 const HEADER_SIGNATURE: &str = "X-LifePlus-Signature";
 const HEADER_MESSAGE_HASH: &str = "X-LifePlus-Message-Hash";
@@ -21,7 +22,7 @@ const HEADER_X402_NONCE: &str = "X-x402-Nonce";
 /// 宙斯盾四维拦截中间件 (The Aegis Interceptor)
 ///
 /// 流程：
-/// 1) 以 Ed25519 校验 owner 身份签名；
+/// 1) 以 Falcon-1024（抗量子格密码学签名）校验 owner 身份签名；
 /// 2) 校验 ERC-8004 entitlement；
 /// 3) 计算 AP2/PoCC 语义摩擦；
 /// 4) 校验 x402 nonce 防重放。
@@ -73,13 +74,13 @@ pub async fn strict_intent_firewall(
 }
 
 fn verify_owner_signature(signature_bytes: &[u8], msg_hash_bytes: &[u8]) -> Result<(), StatusCode> {
-    let verifying_key =
-        VerifyingKey::from_bytes(&AUTHORIZED_OWNER_PUBKEY).map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let public_key =
+        PublicKey::from_bytes(&AUTHORIZED_OWNER_PUBKEY).map_err(|_| StatusCode::UNAUTHORIZED)?;
 
-    let signature = Signature::from_slice(signature_bytes).map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let signature =
+        DetachedSignature::from_bytes(signature_bytes).map_err(|_| StatusCode::UNAUTHORIZED)?;
 
-    verifying_key
-        .verify_strict(msg_hash_bytes, &signature)
+    verify_detached_signature(&signature, msg_hash_bytes, &public_key)
         .map_err(|_| StatusCode::FORBIDDEN)
 }
 
