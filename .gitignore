@@ -60,11 +60,15 @@ yarn-error.log*
 # =====================================================================
 0_kinetic_trust_root/zig-cache/
 0_kinetic_trust_root/zig-out/
+0_kinetic_trust_root/target/
+0_kinetic_trust_root/Cargo.lock
 
 # =====================================================================
 # 🦀 Rust Gateway
 # =====================================================================
 gateway/ap2_universal_router/target/
+ahin-node/target/
+ahin-node/Cargo.lock
 
 # =====================================================================
 # 🖥️ OS & Environment

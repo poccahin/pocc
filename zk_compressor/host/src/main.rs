@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct X402FinalState {
     pub channel_id: String,
-    pub orchestrator_pubkey: [u8; 32],
+    pub orchestrator_pubkey: Vec<u8>,      // Falcon-1024 public key (1793 bytes)
     pub final_nonce: u64,
     pub settled_balance: f64,
-    pub cryptographic_signature: [u8; 64],
+    pub cryptographic_signature: Vec<u8>,  // Falcon-1024 detached signature
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
