@@ -2,10 +2,12 @@
   "name": "7_koala_os_frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Koala OS L7 frontend modules",
-  "type": "commonjs",
+  "description": "Koala OS L7 frontend — LIFE++ Omnisphere Command Center",
+  "type": "module",
   "scripts": {
-    "build": "tsc --noEmit",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
     "test": "tsc --noEmit"
   },
   "dependencies": {
@@ -18,6 +20,21 @@
     "@solana/web3.js": "^1.98.4",
     "framer-motion": "^12.35.2",
     "lucide-react": "^0.577.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1",
     "three": "^0.183.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.176.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.8.3",
+    "vite": "^7.3.1",
+    "vite-plugin-node-polyfills": "^0.25.0"
   }
 }
