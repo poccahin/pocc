@@ -28,35 +28,35 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          cache: 'pip'
 
       - name: ⚡ Setup Node.js (L7 Koala OS)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 6_koala_os_omnisphere/package.json
+          cache-dependency-path: 7_koala_os_frontend/package-lock.json
 
       - name: 🔒 Rust Security Audit
         run: cargo install cargo-audit && cargo audit
-        working-directory: 1_ahin_nervous_system
         continue-on-error: true # 警告但不中断，视具体严格程度而定
 
-      - name: 🔨 Compile AHIN Nervous System (Rust)
+      - name: 🔨 Compile Planetary Rust Workspace (all crates)
         run: cargo build --release
-        working-directory: 1_ahin_nervous_system
 
-      - name: 🧠 Verify PyTorch Wind Tunnel (Python)
+      - name: 🧪 Run Rust Test Suite
+        run: cargo test
+
+      - name: 🧠 Verify Cognitive Canxian Consensus (Python)
         run: |
           pip install -r requirements.txt
           python -m compileall .
         working-directory: 2_pocc_collaboration_mesh
 
-      - name: 🌌 Build Koala OS Omnisphere (React/TS)
+      - name: 🌌 Build Koala OS Frontend (React/TS)
         run: |
           npm ci
           npm run build
-        working-directory: 6_koala_os_omnisphere
+        working-directory: 7_koala_os_frontend
 
   # =====================================================================
   # 🐳 阶段二：镜像矩阵打包与 Docker Hub 全球分发
@@ -80,15 +80,15 @@ jobs:
       - name: 🏗️ Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 1. 编译并推送 L1 Rust 核心路由网关
-      - name: 🚀 Push AHIN Router Image
+      # 1. 编译并推送 Rust 核心工作空间镜像
+      - name: 🚀 Push POCC Rust Workspace Image
         uses: docker/build-push-action@v5
         with:
-          context: ./1_ahin_nervous_system
+          context: .
           push: true
-          tags: ${{ env.DOCKER_ORG }}/ahin-router:latest,${{ env.DOCKER_ORG }}/ahin-router:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.DOCKER_ORG }}/ahin-router:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKER_ORG }}/ahin-router:buildcache,mode=max
+          tags: ${{ env.DOCKER_ORG }}/pocc-runtime:latest,${{ env.DOCKER_ORG }}/pocc-runtime:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_ORG }}/pocc-runtime:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_ORG }}/pocc-runtime:buildcache,mode=max
 
       # 2. 编译并推送 L2.5 Python 张量风洞
       - name: 🧠 Push Tensor Wind Tunnel Image
@@ -99,12 +99,12 @@ jobs:
           tags: ${{ env.DOCKER_ORG }}/tensor-wind-tunnel:latest,${{ env.DOCKER_ORG }}/tensor-wind-tunnel:${{ github.sha }}
 
       # 3. 编译并推送 L7 Koala OS 全息控制台
-      - name: 🌌 Push Koala OS Omnisphere Image
+      - name: 🌌 Push Koala OS Frontend Image
         uses: docker/build-push-action@v5
         with:
-          context: ./6_koala_os_omnisphere
+          context: ./7_koala_os_frontend
           push: true
-          tags: ${{ env.DOCKER_ORG }}/koala-os-omnisphere:latest,${{ env.DOCKER_ORG }}/koala-os-omnisphere:${{ github.sha }}
+          tags: ${{ env.DOCKER_ORG }}/koala-os-frontend:latest,${{ env.DOCKER_ORG }}/koala-os-frontend:${{ github.sha }}
 
       - name: 🏁 Ignition Sequence Complete
         run: echo "🪐 Planetary Core successfully deployed to Docker Hub."

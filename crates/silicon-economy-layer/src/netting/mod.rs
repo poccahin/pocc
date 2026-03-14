@@ -90,12 +90,21 @@ mod tests {
             buyer_did: buyer.to_string(),
             seller_did: seller.to_string(),
             intent_declaration: "test".to_string(),
-            boundary: CognitiveBoundary { max_compute_units: 1000 },
+            l0_kinetic_command_hash: None,
+            boundary: CognitiveBoundary {
+                max_compute_units: 1000,
+                max_time_ms: 60_000,
+                safety_clearance_level: 1,
+            },
             settlement: SettlementInstruction {
                 amount,
                 token_symbol: "LIFE++".to_string(),
+                buyer_signature: "sig_test".to_string(),
             },
             is_executed: false,
+            execution_output_hash: None,
+            zk_proof_commitment: None,
+            timestamp: 0,
         }
     }
 
