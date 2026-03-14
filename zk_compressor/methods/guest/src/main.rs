@@ -33,9 +33,18 @@ fn main() {
         let state_hash: [u8; 32] = hasher.finalize().into();
 
         let pubkey = PublicKey::from_bytes(&tx.orchestrator_pubkey)
-            .expect("Fatal: invalid Falcon-1024 orchestrator public key");
+            .unwrap_or_else(|e| panic!(
+                "Fatal: invalid Falcon-1024 orchestrator public key (expected {} bytes, got {}): {:?}",
+                pqcrypto_falcon::falcon1024::public_key_bytes(),
+                tx.orchestrator_pubkey.len(),
+                e,
+            ));
         let sig = DetachedSignature::from_bytes(&tx.cryptographic_signature)
-            .expect("Fatal: invalid Falcon-1024 signature");
+            .unwrap_or_else(|e| panic!(
+                "Fatal: invalid Falcon-1024 detached signature ({} bytes provided): {:?}",
+                tx.cryptographic_signature.len(),
+                e,
+            ));
         verify_detached_signature(&sig, &state_hash, &pubkey)
             .expect("Fatal: cryptographic signature mismatch in channel");
 
