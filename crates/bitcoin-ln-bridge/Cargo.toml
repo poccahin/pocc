@@ -1,0 +1,15 @@
+[package]
+name = "bitcoin-ln-bridge"
+version.workspace = true
+edition.workspace = true
+description = "Bitcoin Lightning Network bridge for Life++ inter-agent payments"
+
+[[bin]]
+name = "demo"
+path = "src/bin/demo.rs"
+
+[dependencies]
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "1.0"
+rand = "0.8"
