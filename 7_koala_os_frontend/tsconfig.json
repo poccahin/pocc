@@ -13,11 +13,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": [
-      "node"
-    ]
+    "types": []
   },
   "include": [
+    "*.tsx",
+    "*.ts",
     "components/**/*.tsx",
     "routes/**/*.tsx",
     "routes/**/*.ts",

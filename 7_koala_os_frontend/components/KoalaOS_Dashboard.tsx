@@ -83,10 +83,8 @@ export default function KoalaOSDashboard() {
     let logCounter = 0;
     const microInterval = setInterval(() => {
       logCounter += 1;
-      const now = new Date().toLocaleTimeString('en-US', {
-        hour12: false,
-        fractionalSecondDigits: 2,
-      });
+      const d = new Date();
+      const now = `${d.toLocaleTimeString('en-US', { hour12: false })}.${String(Math.floor(d.getMilliseconds() / 10)).padStart(2, '0')}`;
 
       if (logCounter % 3 !== 0) {
         const fee = Math.random() * 0.0005;
