@@ -1,16 +1,18 @@
 use anchor_lang::prelude::*;
 
 pub mod cogfi_credit_slasher;
-pub mod daily_netting_clearing;
 pub mod composite_ctx_settlement;
+pub mod daily_netting_clearing;
 pub mod errors;
 pub mod pocc_structural_verifier;
 pub mod state;
+pub mod zk_arbitration_court;
 
 use cogfi_credit_slasher::*;
-use daily_netting_clearing::*;
 use composite_ctx_settlement::*;
+use daily_netting_clearing::*;
 use pocc_structural_verifier::*;
+use zk_arbitration_court::*;
 
 declare_id!("LifeP1usCore1111111111111111111111111111111");
 
@@ -80,5 +82,20 @@ pub mod lifeplus_core {
 
     pub fn slash_for_data_withholding(ctx: Context<SlashForDataWithholding>) -> Result<()> {
         daily_netting_clearing::slash_for_data_withholding(ctx)
+    }
+
+    pub fn raise_dispute(
+        ctx: Context<RaiseDispute>,
+        target_did: String,
+        pocc_hash: [u8; 32],
+    ) -> Result<()> {
+        zk_arbitration_court::raise_dispute(ctx, target_did, pocc_hash)
+    }
+
+    pub fn submit_zk_proof_defense(
+        ctx: Context<SubmitDefense>,
+        stark_proof: Vec<u8>,
+    ) -> Result<()> {
+        zk_arbitration_court::submit_zk_proof_defense(ctx, stark_proof)
     }
 }
