@@ -1,5 +1,6 @@
-pub mod timeline;
 pub mod router;
+pub mod timeline;
 
-pub use timeline::{CognitiveHashTimeline, CogNode, CogHash, TimelineError};
+pub use router::bandwidth_allocator::{AgentStateSnapshot, ElasticBandwidthController};
 pub use router::{DynamicTrustRouter, TrustProfile};
+pub use timeline::{CogHash, CogNode, CognitiveHashTimeline, TimelineError};

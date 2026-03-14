@@ -1,3 +1,4 @@
+pub mod bandwidth_allocator;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -11,13 +12,25 @@ pub struct DynamicTrustRouter {
 }
 
 impl Default for DynamicTrustRouter {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl DynamicTrustRouter {
-    pub fn new() -> Self { Self { profiles: HashMap::new() } }
+    pub fn new() -> Self {
+        Self {
+            profiles: HashMap::new(),
+        }
+    }
     pub fn slash_agent(&mut self, did: &str, severity: f64) {
-        let profile = self.profiles.entry(did.to_string()).or_insert(TrustProfile { agent_did: did.to_string(), s_cog_score: 50.0 });
+        let profile = self
+            .profiles
+            .entry(did.to_string())
+            .or_insert(TrustProfile {
+                agent_did: did.to_string(),
+                s_cog_score: 50.0,
+            });
         profile.s_cog_score = (profile.s_cog_score - severity * 20.0).max(0.0);
     }
     pub fn get_routing_weight(&self, did: &str) -> f64 {
