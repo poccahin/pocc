@@ -171,8 +171,10 @@ name = "governance-and-rwa"
 version = "0.1.0"
 dependencies = [
  "ahin-nervous-system",
+ "hex",
  "openclaw-edge-runtime",
  "serde",
+ "sha2",
  "silicon-economy-layer",
  "thiserror",
  "uuid",
@@ -332,6 +334,7 @@ name = "pocc-collaboration-protocol"
 version = "0.1.0"
 dependencies = [
  "ahin-nervous-system",
+ "hex",
  "openclaw-edge-runtime",
  "serde",
  "serde_json",

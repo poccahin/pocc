@@ -1,0 +1,3 @@
+# Cognitive Canxian Consensus Engine dependencies
+# MLX is optional (Apple Silicon); falls back to pure Python on other platforms
+# mlx>=0.18.0  # Uncomment if running on Apple Silicon
