@@ -49,4 +49,8 @@ pub enum LifePlusError {
     ChallengeWindowExpired,
     #[msg("The challenge window for this epoch is still active. Cannot finalize yet.")]
     ChallengeWindowStillActive,
+    #[msg("The time window for cryptographic defense has expired.")]
+    DefenseTimeout,
+    #[msg("The dispute is not in a valid state for this operation.")]
+    InvalidDisputeStatus,
 }
