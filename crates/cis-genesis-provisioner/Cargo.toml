@@ -1,0 +1,22 @@
+[package]
+name = "cis-genesis-provisioner"
+version.workspace = true
+edition.workspace = true
+description = "CIS Hardware Genesis Provisioner – zero-trust factory-line identity bootstrapping for edge compute nodes"
+
+[[bin]]
+name = "cis_genesis_provision"
+path = "src/main.rs"
+
+[lib]
+name = "cis_genesis_provisioner"
+path = "src/lib.rs"
+
+[dependencies]
+ahin-nervous-system = { path = "../ahin-nervous-system" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "1.0"
+getrandom = "0.2"
