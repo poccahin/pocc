@@ -1,6 +1,7 @@
 pub mod kinetic;
 pub mod engine;
 pub mod world_model;
+pub mod market;
 
 use kinetic::{KineticCommand, LaneQueue};
 use engine::ObjectiveDrivenEngine;

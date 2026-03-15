@@ -367,6 +367,7 @@ name = "openclaw-edge-runtime"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "pocc-market",
  "thiserror",
  "tokio",
 ]
@@ -416,6 +417,13 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "uuid",
+]
+
+[[package]]
+name = "pocc-market"
+version = "0.1.0"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]

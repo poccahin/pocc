@@ -6,6 +6,7 @@ members = [
     "crates/silicon-economy-layer",
     "crates/governance-and-rwa",
     "crates/bitcoin-ln-bridge",
+    "crates/pocc-market",
 ]
 resolver = "2"
 
