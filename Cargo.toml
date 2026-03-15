@@ -7,6 +7,7 @@ members = [
     "crates/governance-and-rwa",
     "crates/bitcoin-ln-bridge",
     "crates/pocc-market",
+    "crates/cis-genesis-provisioner",
 ]
 resolver = "2"
 

@@ -32,9 +32,12 @@ jobs:
       - name: ⚡ Setup Node.js (L7 Koala OS)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: 7_koala_os_frontend/package-lock.json
+
+      - name: 🔧 Upgrade npm for lockfile compatibility
+        run: npm install -g npm@latest
 
       - name: 🔒 Rust Security Audit
         run: cargo install cargo-audit && cargo audit
