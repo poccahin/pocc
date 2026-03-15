@@ -1,5 +1,7 @@
 pub mod ctx_composer;
+pub mod merkle;
 pub mod orchestrator;
+pub mod telemetry;
 pub mod zk_prover;
 
 pub use ctx_composer::{
