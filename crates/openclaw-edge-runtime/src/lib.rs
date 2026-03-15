@@ -1,4 +1,5 @@
 pub mod adaptive_pricer;
+pub mod byteme_scheduler;
 pub mod kinetic;
 pub mod engine;
 pub mod world_model;
