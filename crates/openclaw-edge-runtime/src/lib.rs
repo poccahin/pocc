@@ -1,3 +1,4 @@
+pub mod adaptive_pricer;
 pub mod kinetic;
 pub mod engine;
 pub mod world_model;
