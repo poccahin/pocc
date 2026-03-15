@@ -336,10 +336,12 @@ dependencies = [
  "ahin-nervous-system",
  "hex",
  "openclaw-edge-runtime",
+ "rand",
  "serde",
  "serde_json",
  "sha2",
  "thiserror",
+ "tokio",
  "uuid",
 ]
 
