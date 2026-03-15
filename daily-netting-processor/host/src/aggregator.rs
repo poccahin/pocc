@@ -1,7 +1,8 @@
 use crossbeam_channel::Receiver;
 use methods::{NETTING_CIRCUIT_ELF, NETTING_CIRCUIT_ID};
-use pocc_core::models::{CognitiveTransaction, StateTransition};
+use pocc_core::models::{CognitiveTransaction, StateTransitionBatch};
 use risc0_zkvm::{default_prover, ExecutorEnv};
+use std::time::Instant;
 
 pub struct ZkAggregator {
     ctx_receiver: Receiver<CognitiveTransaction>,
@@ -10,37 +11,37 @@ pub struct ZkAggregator {
 
 impl ZkAggregator {
     /// 启动无限循环轧差折叠引擎
-    pub fn run_folding_loop(&self, current_root: [u8; 32]) {
+    pub fn run_folding_engine(&self, initial_root: [u8; 32]) {
         println!(
-            "🌌 [AGGREGATOR] ZK-STARK Folding Engine ignited. Listening for x402 micropayments..."
+            "🌌 [AGGREGATOR] ZK-STARK Folding Engine ignited. Assimilating x402 micropayments..."
         );
 
-        let mut active_root = current_root;
+        let mut active_root = initial_root;
 
         loop {
-            let mut batch = Vec::with_capacity(self.batch_size);
+            let mut batch_txs = Vec::with_capacity(self.batch_size);
 
-            // 收集 N 笔认知交易组成批次
+            // 极速收集预定数量的认知交易（例如 10,000 笔）
             for _ in 0..self.batch_size {
                 if let Ok(ctx) = self.ctx_receiver.recv() {
-                    batch.push(ctx);
+                    batch_txs.push(ctx);
                 }
             }
 
             println!(
                 "📦 [BATCH] {} CTx collected. Commencing STARK proving...",
-                batch.len()
+                self.batch_size
             );
-            let start_time = std::time::Instant::now();
+            let start_time = Instant::now();
 
-            let transition = StateTransition {
+            let batch_payload = StateTransitionBatch {
                 old_state_root: active_root,
-                transactions: batch,
+                transactions: batch_txs,
             };
 
-            // 1) 构建 ZKVM 执行环境
+            // 1) 构建 ZKVM 内存映像并注入批处理账单数据
             let env = ExecutorEnv::builder()
-                .write(&transition)
+                .write(&batch_payload)
                 .unwrap()
                 .build()
                 .unwrap();
@@ -58,12 +59,12 @@ impl ZkAggregator {
 
             let elapsed = start_time.elapsed().as_secs_f32();
             println!(
-                "✨ [STARK GENERATED] {} txs collapsed into one proof in {:.2}s.",
-                self.batch_size, elapsed
+                "✨ [STARK GENERATED] Massive tensor consensus collapsed into a single mathematical truth in {:.2}s.",
+                elapsed
             );
             println!("🧾 Circuit ID: {:?}", NETTING_CIRCUIT_ID);
             println!("🧩 Batch Root: {:?}", batch_root);
-            println!("🔗 New Global Root: {:?}", new_root);
+            println!("🔗 New Planetary State Root: {:?}", new_root);
 
             // 4) 提交压缩后的证明到 L1
             // self.submit_proof_to_l1(receipt);

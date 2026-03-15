@@ -1,31 +1,40 @@
 #![no_main]
 
-use pocc_core::crypto::pqc_falcon::verify_detached;
-use pocc_core::merkle::MicroMerkleTree;
-use pocc_core::models::StateTransition;
+use pocc_core::crypto::verify_signature;
+use pocc_core::merkle::ConcurrentMerkleTree;
+use pocc_core::models::StateTransitionBatch;
 use risc0_zkvm::guest::env;
 
 risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
-    // 1. 从宿主机（链下聚合器）读取输入数据：前序状态根 + CTx 批次
-    let transition: StateTransition = env::read();
+    // 1. 从宿主机（链下聚合节点）读取大规模批处理数据
+    // 包含：前序全局状态根、批量 CTx 明细
+    let batch: StateTransitionBatch = env::read();
 
-    let mut batch_tree = MicroMerkleTree::new();
+    let current_state_root = batch.old_state_root;
+    let mut batch_tree = ConcurrentMerkleTree::new();
 
-    // 2. 在 ZKVM 内验证每笔认知交易
-    for ctx in transition.transactions.iter() {
-        // 核心计算 1：验证抗量子签名（FALCON）
-        let is_valid =
-            verify_detached(&ctx.signature, &ctx.payload_hash(), &ctx.payer_pubkey).is_ok();
+    // 严苛的全局语义摩擦力阈值
+    const EPSILON_THRESHOLD: f32 = 0.05;
 
-        if !is_valid {
-            panic!("[ZKVM FATAL] Invalid CTx signature detected in batch");
+    // 2. 在 ZKVM 内验证每笔认知协作交易
+    for ctx in batch.transactions.iter() {
+        // 绝对规则 1：验证张量语义摩擦力
+        if ctx.semantic_friction > EPSILON_THRESHOLD {
+            panic!("[ZKVM FATAL] Cognitive Transaction rejected. Semantic friction exceeds Epsilon.");
         }
 
-        // 核心计算 2：守恒约束（金额必须为正）
-        if ctx.amount <= 0 {
-            panic!("[ZKVM FATAL] Invalid CTx amount, expected positive value");
+        // 绝对规则 2：验证 x402 签名与底层密码学主权
+        let is_valid_sig = verify_signature(&ctx.agent_pubkey, &ctx.payload_hash(), &ctx.signature);
+
+        if !is_valid_sig {
+            panic!("[ZKVM FATAL] Cryptographic Heresy. Unauthorized entity detected in batch.");
+        }
+
+        // 绝对规则 3：热力学守恒验证
+        if ctx.settled_volume <= 0.0 {
+            panic!("[ZKVM FATAL] Zero-value void transaction detected. Sybil attempt blocked.");
         }
 
         batch_tree.insert(ctx.hash());
@@ -35,12 +44,12 @@ pub fn main() {
     let batch_root = batch_tree.root();
 
     // 4. 合并到全局状态根
-    let new_state_root = hash_combine(transition.old_state_root, batch_root);
+    let new_state_root = hash_combine(current_state_root, batch_root);
 
     // 5. 提交公开承诺（随证明上链）
-    env::commit(&(transition.old_state_root, new_state_root, batch_root));
+    env::commit(&(batch.old_state_root, new_state_root, batch_root));
 }
 
 fn hash_combine(a: [u8; 32], b: [u8; 32]) -> [u8; 32] {
-    pocc_core::crypto::sha3_hash(&[a, b].concat())
+    pocc_core::crypto::poseidon_hash(&[a, b].concat())
 }
