@@ -1,0 +1,23 @@
+[
+  {
+    "inputs": [
+      { "internalType": "string", "name": "domainPrefix", "type": "string" },
+      { "internalType": "string", "name": "capabilitiesURI", "type": "string" },
+      { "internalType": "address", "name": "owner", "type": "address" }
+    ],
+    "name": "register",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "uint256", "name": "agentId", "type": "uint256" },
+      { "indexed": false, "internalType": "string", "name": "domainPrefix", "type": "string" },
+      { "indexed": true, "internalType": "address", "name": "owner", "type": "address" }
+    ],
+    "name": "Registered",
+    "type": "event"
+  }
+]
