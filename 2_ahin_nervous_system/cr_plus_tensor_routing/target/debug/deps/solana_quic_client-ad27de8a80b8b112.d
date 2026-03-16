@@ -1,0 +1,8 @@
+/home/runner/work/pocc/pocc/2_ahin_nervous_system/cr_plus_tensor_routing/target/debug/deps/solana_quic_client-ad27de8a80b8b112.d: /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/lib.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/nonblocking/mod.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/nonblocking/quic_client.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/quic_client.rs
+
+/home/runner/work/pocc/pocc/2_ahin_nervous_system/cr_plus_tensor_routing/target/debug/deps/libsolana_quic_client-ad27de8a80b8b112.rmeta: /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/lib.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/nonblocking/mod.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/nonblocking/quic_client.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/quic_client.rs
+
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/lib.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/nonblocking/mod.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/nonblocking/quic_client.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-quic-client-1.16.15/src/quic_client.rs:

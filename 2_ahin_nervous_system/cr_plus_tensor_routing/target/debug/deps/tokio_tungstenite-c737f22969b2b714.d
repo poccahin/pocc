@@ -1,0 +1,10 @@
+/home/runner/work/pocc/pocc/2_ahin_nervous_system/cr_plus_tensor_routing/target/debug/deps/tokio_tungstenite-c737f22969b2b714.d: /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/lib.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/compat.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/connect.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/handshake.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/stream.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/tls.rs
+
+/home/runner/work/pocc/pocc/2_ahin_nervous_system/cr_plus_tensor_routing/target/debug/deps/libtokio_tungstenite-c737f22969b2b714.rmeta: /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/lib.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/compat.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/connect.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/handshake.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/stream.rs /home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/tls.rs
+
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/lib.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/compat.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/connect.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/handshake.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/stream.rs:
+/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-tungstenite-0.17.2/src/tls.rs:

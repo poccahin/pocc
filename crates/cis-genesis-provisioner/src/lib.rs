@@ -23,3 +23,5 @@ pub mod crypto;
 pub mod hardware;
 pub mod manifest;
 pub mod provisioner;
+
+pub use provisioner::MEASUREMENT_DISPLAY_LENGTH;

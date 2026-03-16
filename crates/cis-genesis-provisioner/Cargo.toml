@@ -20,3 +20,4 @@ sha2 = "0.10"
 hex = "0.4"
 thiserror = "1.0"
 getrandom = "0.2"
+tee-foundation = { path = "../tee-foundation" }

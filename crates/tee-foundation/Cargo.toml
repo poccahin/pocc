@@ -1,0 +1,14 @@
+[package]
+name = "tee-foundation"
+version.workspace = true
+edition.workspace = true
+description = "Hardware-rooted Trusted Execution Environment (TEE) primitives for the Life++ full stack"
+
+[dependencies]
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "1.0"
+getrandom = "0.2"
+
+[dev-dependencies]
+# no extra dev deps needed
