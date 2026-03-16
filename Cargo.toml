@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "crates/tee-foundation",
     "crates/openclaw-edge-runtime",
     "crates/ahin-nervous-system",
     "crates/pocc-collaboration-protocol",
@@ -8,6 +9,9 @@ members = [
     "crates/bitcoin-ln-bridge",
     "crates/pocc-market",
     "crates/cis-genesis-provisioner",
+]
+exclude = [
+    "2_ahin_nervous_system/cr_plus_tensor_routing",
 ]
 resolver = "2"
 

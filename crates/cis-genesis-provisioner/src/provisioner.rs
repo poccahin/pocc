@@ -7,7 +7,9 @@
 //! 2. Dual key-pair derivation (Ed25519 + EVM).
 //! 3. Capability manifest construction.
 //! 4. Genesis transaction signing.
-//! 5. OTP fuse burning.
+//! 5. TEE measurement chain construction and remote attestation report generation.
+//! 6. Private key sealing to the TEE measurement state.
+//! 7. OTP fuse burning.
 
 use crate::{
     crypto::{Ed25519Keypair, EvmWallet, PufManager},
@@ -15,11 +17,17 @@ use crate::{
     manifest::AgentCapabilityManifest,
 };
 use thiserror::Error;
+use tee_foundation::{TeeContext, TeeReport, TeeVendor};
+
+/// Number of hex characters of the measurement digest to show in log output.
+pub const MEASUREMENT_DISPLAY_LENGTH: usize = 16;
 
 #[derive(Debug, Error)]
 pub enum ProvisionerError {
     #[error("Hardware error: {0}")]
     Hardware(#[from] crate::hardware::HardwareError),
+    #[error("TEE error: {0}")]
+    Tee(String),
     #[error("Provisioning already completed for this device")]
     AlreadyProvisioned,
 }
@@ -35,6 +43,14 @@ pub struct GenesisResult {
     pub signed_tx: Vec<u8>,
     /// The capability manifest that was uploaded to the factory IPFS node.
     pub manifest: AgentCapabilityManifest,
+    /// Remote attestation report covering the full software stack that ran
+    /// during provisioning.  Remote verifiers use this to confirm the device
+    /// was initialised by genuine, unmodified Life++ firmware.
+    pub tee_report: TeeReport,
+    /// The Ed25519 public key sealed to the TEE measurement.  It can only be
+    /// recovered on a device whose measurement chain reproduces the same
+    /// digest as was present at provisioning time.
+    pub sealed_public_key: Vec<u8>,
 }
 
 /// Configuration for the factory provisioner.
@@ -47,6 +63,8 @@ pub struct ProvisionerConfig {
     pub factory_rpc_url: String,
     /// Unix timestamp at provisioning time (injected for testability).
     pub provisioned_at: u64,
+    /// TEE hardware vendor for this device.
+    pub tee_vendor: TeeVendor,
 }
 
 /// Orchestrates the end-to-end Silicon Awakening ceremony.
@@ -72,11 +90,14 @@ impl GenesisProvisioner {
     /// 2. Derive Ed25519 + EVM key pairs.
     /// 3. Build the agent capability manifest.
     /// 4. Sign the ERC-8004 genesis transaction (key never leaves memory).
-    /// 5. Burn OTP fuses to permanently lock debug interfaces.
+    /// 5. Build TEE measurement chain and generate remote attestation report.
+    /// 6. Seal the Ed25519 public key to the TEE measurement state.
+    /// 7. Burn OTP fuses to permanently lock debug interfaces.
     ///
     /// # Errors
     ///
-    /// Returns [`ProvisionerError::Hardware`] if either OTP fuse burn fails.
+    /// Returns [`ProvisionerError::Hardware`] if either OTP fuse burn fails,
+    /// or [`ProvisionerError::Tee`] if attestation report generation fails.
     pub fn run(&mut self) -> Result<GenesisResult, ProvisionerError> {
         // ── Step 1: Physical entropy extraction ──────────────────────────────
         eprintln!("⏳ [STEP 1] Harvesting SRAM PUF silicon entropy...");
@@ -110,11 +131,38 @@ impl GenesisProvisioner {
             evm_wallet.sign_erc8004_registration(agent_did.clone(), capabilities_uri);
         let evm_address = evm_wallet.address();
 
-        // Zeroize the EVM wallet private key before the fuse burn step.
+        // Zeroize the EVM wallet private key before the TEE and fuse burn steps.
         evm_wallet.zeroize();
 
-        // ── Step 5: Burn OTP fuses ────────────────────────────────────────────
-        eprintln!("⏳ [STEP 5] Burning OTP Fuses. Locking down hardware debugging...");
+        // ── Step 5: Build TEE measurement chain & generate attestation ────────
+        eprintln!("⏳ [STEP 5] Building TEE measurement chain...");
+        let mut tee_ctx = TeeContext::new(self.config.tee_vendor);
+        // Extend the measurement chain with every component of the software stack
+        // that participated in key generation.  The order mirrors the actual boot
+        // sequence: PUF driver → key derivation module → manifest builder.
+        tee_ctx.extend_measurement(b"cis-genesis-provisioner:puf-driver:v0.1.0");
+        tee_ctx.extend_measurement(b"cis-genesis-provisioner:key-derivation:v0.1.0");
+        tee_ctx.extend_measurement(b"cis-genesis-provisioner:manifest-builder:v0.1.0");
+        tee_ctx.extend_measurement(b"cis-genesis-provisioner:erc8004-signer:v0.1.0");
+
+        // The agent DID is mixed into the measurement so that the attestation
+        // report is uniquely bound to this specific device identity.
+        tee_ctx.extend_measurement(agent_did.as_bytes());
+
+        let tee_report = tee_ctx
+            .generate_report(genesis_seed[..16].as_ref())
+            .map_err(|e| ProvisionerError::Tee(e.to_string()))?;
+
+        eprintln!(
+            "✅ TEE measurement: {}",
+            &tee_report.measurement_hex()[..MEASUREMENT_DISPLAY_LENGTH]
+        );
+
+        // ── Step 6: Seal the public key to the measurement state ──────────────
+        let sealed_public_key = tee_ctx.seal(agent_keypair.public_key()).into_bytes();
+
+        // ── Step 7: Burn OTP fuses ────────────────────────────────────────────
+        eprintln!("⏳ [STEP 7] Burning OTP Fuses. Locking down hardware debugging...");
         self.otp_fuses.burn_jtag_disable_bit()?;
         self.otp_fuses.burn_secure_boot_enforce_bit()?;
 
@@ -126,6 +174,8 @@ impl GenesisProvisioner {
             evm_address,
             signed_tx,
             manifest,
+            tee_report,
+            sealed_public_key,
         })
     }
 
@@ -145,6 +195,7 @@ mod tests {
             factory_ipfs_url: "http://192.168.100.1:5001".into(),
             factory_rpc_url: "http://192.168.100.1:8545".into(),
             provisioned_at: 1700000000,
+            tee_vendor: TeeVendor::Software,
         }
     }
 
@@ -182,5 +233,43 @@ mod tests {
         // Attempt to burn the JTAG fuse again directly.
         let err = p.otp_fuses.burn_jtag_disable_bit();
         assert!(err.is_err());
+    }
+
+    #[test]
+    fn genesis_result_contains_valid_tee_report() {
+        let mut p = GenesisProvisioner::new(make_config());
+        let result = p.run().unwrap();
+        result.tee_report.verify().expect("TEE report should be internally consistent");
+        // The measurement must be non-zero (the chain was extended).
+        assert_ne!(result.tee_report.measurement, [0u8; 32]);
+    }
+
+    #[test]
+    fn genesis_result_contains_sealed_public_key() {
+        let mut p = GenesisProvisioner::new(make_config());
+        let result = p.run().unwrap();
+        assert!(!result.sealed_public_key.is_empty());
+    }
+
+    #[test]
+    fn different_mac_addresses_produce_different_measurements() {
+        let cfg1 = ProvisionerConfig {
+            mac_address: [0x00, 0x11, 0x22, 0x33, 0x44, 0x55],
+            factory_ipfs_url: "http://a".into(),
+            factory_rpc_url: "http://b".into(),
+            provisioned_at: 1700000000,
+            tee_vendor: TeeVendor::Software,
+        };
+        let cfg2 = ProvisionerConfig {
+            mac_address: [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF],
+            factory_ipfs_url: "http://a".into(),
+            factory_rpc_url: "http://b".into(),
+            provisioned_at: 1700000000,
+            tee_vendor: TeeVendor::Software,
+        };
+        let r1 = GenesisProvisioner::new(cfg1).run().unwrap();
+        let r2 = GenesisProvisioner::new(cfg2).run().unwrap();
+        // Different DIDs → different DID mixed into measurement chain.
+        assert_ne!(r1.tee_report.measurement, r2.tee_report.measurement);
     }
 }

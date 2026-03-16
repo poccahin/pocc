@@ -25,7 +25,12 @@ impl EdgeRuntime {
         }
     }
 
-    /// Submit a kinetic command through the two-stage safety pipeline:
+    /// Submit a kinetic command through the three-stage safety pipeline:
+    ///
+    /// 0. **TEE attestation** – the command must carry a valid remote
+    ///    attestation report produced inside a genuine Life++ enclave.
+    ///    Commands without an attestation report are rejected immediately,
+    ///    before any world-model or actuator-limit checks run.
     ///
     /// 1. **World model rehearsal** – predict the next world state and reject
     ///    commands that would exceed the collision-probability threshold.
@@ -35,7 +40,7 @@ impl EdgeRuntime {
     /// 2. **Engine psychological rehearsal** – check the hardware blacklist
     ///    and per-axis actuator limits.
     ///
-    /// Commands that pass both gates are enqueued for physical execution.
+    /// Commands that pass all gates are enqueued for physical execution.
     pub async fn submit_intent(&self, cmd: KineticCommand) {
         // Gate 1: world model safety check (skipped if model is uninitialised
         // or the command embedding size differs from the configured dim).

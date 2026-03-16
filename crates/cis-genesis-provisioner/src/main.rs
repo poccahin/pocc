@@ -15,6 +15,7 @@
 
 use cis_genesis_provisioner::provisioner::{GenesisProvisioner, ProvisionerConfig};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tee_foundation::TeeVendor;
 
 fn main() {
     println!("==================================================");
@@ -37,6 +38,7 @@ fn main() {
         factory_ipfs_url,
         factory_rpc_url,
         provisioned_at,
+        tee_vendor: TeeVendor::AmdSevSnp,
     };
 
     let mut provisioner = GenesisProvisioner::new(config);
@@ -49,6 +51,15 @@ fn main() {
             println!(
                 "   Signed TX:   {} bytes (ready for gateway broadcast)",
                 result.signed_tx.len()
+            );
+            println!(
+                "   TEE Report:  measurement={} vendor={:?}",
+                &result.tee_report.measurement_hex()[..cis_genesis_provisioner::MEASUREMENT_DISPLAY_LENGTH],
+                result.tee_report.vendor,
+            );
+            println!(
+                "   Sealed Key:  {} bytes",
+                result.sealed_public_key.len()
             );
             println!("\n✅ [PASS] Station 7 Complete. Box is ready for packaging.");
         }
