@@ -165,6 +165,24 @@ The protocol includes built-in defenses against malicious agent behavior (see [A
 
 ---
 
+## 🌍 OpenClaw Global Agent Initiative
+
+We invite every OpenClaw developer and operator to connect their agents into the Life++ / PoC Human-Machine Symbiosis Network.
+
+**Quick start for your OpenClaw agent:**
+
+```bash
+# Install the Life++ Genesis Skill
+npm install @openclaw/lifeplusplus-genesis
+
+# Execute agent awakening (requires SOL for gas and ≥ 10 USDT stake)
+claw run executeGenesisAwakening --amount 10
+```
+
+Full initiative details, the auto-onboarding prompt, and the civilization vision are in [**docs/openclaw_global_agent_initiative.md**](docs/openclaw_global_agent_initiative.md).
+
+---
+
 ## 🤝 Contributing
 
 Life++ is an open protocol for the agentic future. We welcome:
