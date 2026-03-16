@@ -1,0 +1,20 @@
+[package]
+name = "agent-wallet-vault"
+version.workspace = true
+edition.workspace = true
+description = "Solana agent wallet key sandbox – private keys are sealed inside a TEE and never exposed to any agent"
+
+[lib]
+name = "agent_wallet_vault"
+path = "src/lib.rs"
+
+[dependencies]
+tee-foundation   = { path = "../tee-foundation" }
+sha2             = "0.10"
+hmac             = "0.12"
+hex              = "0.4"
+thiserror        = "1.0"
+getrandom        = "0.2"
+pqcrypto-kyber   = "0.8.1"
+pqcrypto-dilithium = "0.5.0"
+pqcrypto-traits  = "0.3.5"
