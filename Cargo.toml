@@ -9,6 +9,7 @@ members = [
     "crates/bitcoin-ln-bridge",
     "crates/pocc-market",
     "crates/cis-genesis-provisioner",
+    "crates/agent-wallet-vault",
 ]
 exclude = [
     "2_ahin_nervous_system/cr_plus_tensor_routing",
