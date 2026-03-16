@@ -57,7 +57,7 @@ jobs:
 
       - name: 🌌 Build Koala OS Frontend (React/TS)
         run: |
-          npm ci
+          npm ci --legacy-peer-deps
           npm run build
         working-directory: 7_koala_os_frontend
 
